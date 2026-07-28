@@ -386,7 +386,11 @@
         </div>
 
         <button class="btn-primary" onclick="addProduct()">
-            <i class="fas fa-plus-circle"></i> Tambahkan Produk & Sync
+            <i class="fas fa-plus-circle"></i> Tambahkan Produk
+        </button>
+
+        <button class="btn-primary btn-sync" onclick="syncToGitHub()">
+            <i class="fas fa-cloud-upload-alt"></i> Sync ke GitHub
         </button>
 
         <button class="btn-primary btn-secondary" onclick="autoFillDemo()">
@@ -401,9 +405,6 @@
         <div class="sync-status" id="syncStatus">
             <span><i class="fas fa-cloud-upload-alt"></i> GitHub Sync</span>
             <span id="syncStatusText" class="unsynced">⏳ Belum sync</span>
-            <button class="btn-small" onclick="syncToGitHub()" style="background:#2a7a4a;color:white;border:none;padding:6px 14px;border-radius:12px;font-weight:600;cursor:pointer;">
-                <i class="fas fa-sync"></i> Sync Now
-            </button>
         </div>
 
         <!-- Preview -->
@@ -443,9 +444,9 @@
         // ============================================================
         let html5QrCode = null;
         let isScanning = false;
+        let isSyncing = false; // Flag untuk mencegah sync ganda
         const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/alexpim2/projectMT/main/masterlist.xlsx';
         const GITHUB_API_URL = 'https://api.github.com/repos/alexpim2/projectMT/contents/masterlist.xlsx';
-        const GITHUB_TOKEN = ''; // Kosongkan untuk public repo, atau isi token untuk private
 
         // ============================================================
         //  DATA
@@ -532,7 +533,7 @@
         // ============================================================
         async function fetchProductFromGitHub(ean) {
             try {
-                const response = await fetch(GITHUB_RAW_URL);
+                const response = await fetch(GITHUB_RAW_URL + '?t=' + Date.now());
                 if (!response.ok) throw new Error('Gagal ambil data');
                 
                 const arrayBuffer = await response.arrayBuffer();
@@ -540,7 +541,6 @@
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const jsonData = XLSX.utils.sheet_to_json(firstSheet);
                 
-                // Cari produk dengan EAN/PLU
                 const found = jsonData.find(row => {
                     const rowEan = String(row['EAN'] || row['ean'] || row['PLU'] || row['plu'] || row['Barcode'] || '').trim();
                     return rowEan === ean;
@@ -605,9 +605,9 @@
         }
 
         // ============================================================
-        //  ADD PRODUCT + AUTO SYNC
+        //  ADD PRODUCT (TANPA AUTO SYNC)
         // ============================================================
-        async function addProduct() {
+        function addProduct() {
             const ean = document.getElementById('eanInput').value.trim();
             const name = document.getElementById('nameInput').value.trim();
             const brand = document.getElementById('brandInput').value.trim();
@@ -619,7 +619,6 @@
                 return;
             }
 
-            // Validasi tanggal
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const expDate = new Date(exp);
@@ -633,7 +632,6 @@
 
             let products = getProducts();
             
-            // Cek duplikat
             const existing = products.find(p => p.ean === ean);
             if (existing) {
                 if (!confirm(`⚠️ "${existing.name}" sudah ada. Update quantity?`)) return;
@@ -651,8 +649,10 @@
             clearForm();
             setDefaultDate();
             
-            // Auto sync ke GitHub
-            await syncToGitHub();
+            // Update status sync ke "Belum sync"
+            const statusText = document.getElementById('syncStatusText');
+            statusText.className = 'unsynced';
+            statusText.textContent = '⏳ Belum sync (klik Sync)';
         }
 
         // ============================================================
@@ -665,6 +665,10 @@
             saveProducts(products);
             renderPreview();
             showToast('🗑️ Produk dihapus', 'info');
+            
+            const statusText = document.getElementById('syncStatusText');
+            statusText.className = 'unsynced';
+            statusText.textContent = '⏳ Belum sync (klik Sync)';
         }
 
         // ============================================================
@@ -673,15 +677,27 @@
         function clearAllData() {
             if (!confirm('⚠️ Hapus SEMUA data? Ini tidak bisa dibatalkan!')) return;
             localStorage.removeItem('products');
+            localStorage.removeItem('lastSync');
             renderPreview();
             showToast('🗑️ Semua data dihapus', 'info');
+            
+            const statusText = document.getElementById('syncStatusText');
+            statusText.className = 'unsynced';
+            statusText.textContent = '⏳ Belum sync';
         }
 
         // ============================================================
-        //  SYNC TO GITHUB
+        //  SYNC TO GITHUB (FIXED - NO STACK OVERFLOW)
         // ============================================================
         async function syncToGitHub() {
+            // Cegah sync ganda
+            if (isSyncing) {
+                showToast('⏳ Sync sedang berjalan...', 'info');
+                return;
+            }
+            
             const statusText = document.getElementById('syncStatusText');
+            isSyncing = true;
             statusText.className = 'syncing';
             statusText.textContent = '⏳ Syncing...';
             
@@ -691,6 +707,7 @@
                     showToast('⚠️ Tidak ada data untuk disync', 'error');
                     statusText.className = 'unsynced';
                     statusText.textContent = '❌ Tidak ada data';
+                    isSyncing = false;
                     return;
                 }
 
@@ -717,11 +734,12 @@
                 const buffer = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
                 const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
 
-                // Upload ke GitHub
+                // Cek SHA file
                 let sha = null;
                 try {
                     const getResponse = await fetch(GITHUB_API_URL, {
-                        headers: GITHUB_TOKEN ? { 'Authorization': `token ${GITHUB_TOKEN}` } : {}
+                        cache: 'no-cache',
+                        headers: { 'Accept': 'application/vnd.github.v3+json' }
                     });
                     if (getResponse.ok) {
                         const fileData = await getResponse.json();
@@ -731,11 +749,13 @@
                     console.log('File belum ada, akan dibuat baru');
                 }
 
+                // Upload ke GitHub
                 const uploadResponse = await fetch(GITHUB_API_URL, {
                     method: 'PUT',
+                    cache: 'no-cache',
                     headers: {
                         'Content-Type': 'application/json',
-                        ...(GITHUB_TOKEN ? { 'Authorization': `token ${GITHUB_TOKEN}` } : {})
+                        'Accept': 'application/vnd.github.v3+json'
                     },
                     body: JSON.stringify({
                         message: `Update masterlist ${new Date().toLocaleString('id-ID')}`,
@@ -746,8 +766,8 @@
                 });
 
                 if (!uploadResponse.ok) {
-                    const errorText = await uploadResponse.text();
-                    throw new Error(`HTTP ${uploadResponse.status}: ${errorText}`);
+                    const errorData = await uploadResponse.json();
+                    throw new Error(errorData.message || `HTTP ${uploadResponse.status}`);
                 }
 
                 localStorage.setItem('lastSync', Date.now().toString());
@@ -758,8 +778,10 @@
             } catch (error) {
                 console.error('Sync error:', error);
                 statusText.className = 'unsynced';
-                statusText.textContent = '❌ Gagal sync';
-                showToast(`❌ Gagal sync: ${error.message}`, 'error');
+                statusText.textContent = `❌ ${error.message || 'Gagal sync'}`;
+                showToast(`❌ Gagal sync: ${error.message || 'Unknown error'}`, 'error');
+            } finally {
+                isSyncing = false;
             }
         }
 
