@@ -134,6 +134,10 @@
             background: linear-gradient(135deg, #4a6a8a, #2d4a6a);
             margin-top: 4px;
         }
+        .btn-sync {
+            background: linear-gradient(135deg, #1a5a7a, #0a3a5a);
+            margin-top: 4px;
+        }
         .preview-list {
             margin-top: 20px;
             max-height: 300px;
@@ -184,6 +188,12 @@
             transition: opacity 0.4s;
             border: 1px solid rgba(255,255,255,0.1);
         }
+        .toast.success {
+            border-color: #2a7a4a;
+        }
+        .toast.error {
+            border-color: #b33a3a;
+        }
         .badge {
             display: inline-block;
             padding: 2px 12px;
@@ -202,6 +212,31 @@
         .badge-warning {
             background: #fff3cd;
             color: #856404;
+        }
+        .sync-status {
+            margin-top: 12px;
+            padding: 10px 16px;
+            border-radius: 14px;
+            background: #eef2f7;
+            font-size: 13px;
+            color: #2d3a5e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .sync-status .synced {
+            color: #2a7a4a;
+            font-weight: 600;
+        }
+        .sync-status .unsynced {
+            color: #b33a3a;
+            font-weight: 600;
+        }
+        .sync-status .syncing {
+            color: #856404;
+            font-weight: 600;
         }
 
         /* ===== SCANNER OVERLAY ===== */
@@ -336,6 +371,11 @@
         </div>
 
         <div class="form-group">
+            <label><i class="fas fa-tag"></i> Brand / Merek</label>
+            <input type="text" id="brandInput" placeholder="Merek produk (opsional)" />
+        </div>
+
+        <div class="form-group">
             <label><i class="fas fa-sort-amount-up"></i> Quantity</label>
             <input type="number" id="qtyInput" placeholder="Jumlah" min="1" value="1" />
         </div>
@@ -346,7 +386,7 @@
         </div>
 
         <button class="btn-primary" onclick="addProduct()">
-            <i class="fas fa-plus-circle"></i> Tambahkan Produk
+            <i class="fas fa-plus-circle"></i> Tambahkan Produk & Sync
         </button>
 
         <button class="btn-primary btn-secondary" onclick="autoFillDemo()">
@@ -356,6 +396,15 @@
         <button class="btn-primary btn-danger" onclick="clearAllData()">
             <i class="fas fa-trash"></i> Hapus Semua Data
         </button>
+
+        <!-- Sync Status -->
+        <div class="sync-status" id="syncStatus">
+            <span><i class="fas fa-cloud-upload-alt"></i> GitHub Sync</span>
+            <span id="syncStatusText" class="unsynced">⏳ Belum sync</span>
+            <button class="btn-small" onclick="syncToGitHub()" style="background:#2a7a4a;color:white;border:none;padding:6px 14px;border-radius:12px;font-weight:600;cursor:pointer;">
+                <i class="fas fa-sync"></i> Sync Now
+            </button>
+        </div>
 
         <!-- Preview -->
         <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center;">
@@ -369,7 +418,6 @@
     <div class="scanner-overlay" id="scannerOverlay">
         <div class="scanner-container">
             <div id="scanner-box">
-                <!-- Scanner akan di-render di sini -->
                 <div class="scan-corner tl"></div>
                 <div class="scan-corner tr"></div>
                 <div class="scan-corner bl"></div>
@@ -385,15 +433,23 @@
         </div>
     </div>
 
-    <!-- ===== LIBRARY SCANNER ===== -->
+    <!-- ===== LIBRARY ===== -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <script>
-        // ===== VARIABLES =====
+        // ============================================================
+        //  VARIABLES
+        // ============================================================
         let html5QrCode = null;
         let isScanning = false;
+        const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/alexpim2/projectMT/main/masterlist.xlsx';
+        const GITHUB_API_URL = 'https://api.github.com/repos/alexpim2/projectMT/contents/masterlist.xlsx';
+        const GITHUB_TOKEN = ''; // Kosongkan untuk public repo, atau isi token untuk private
 
-        // ===== DATA =====
+        // ============================================================
+        //  DATA
+        // ============================================================
         function getProducts() {
             return JSON.parse(localStorage.getItem('products')) || [];
         }
@@ -402,36 +458,35 @@
             localStorage.setItem('products', JSON.stringify(products));
         }
 
-        // ===== SET DEFAULT DATE = HARI INI =====
+        // ============================================================
+        //  SET DEFAULT DATE = HARI INI
+        // ============================================================
         function setDefaultDate() {
             const today = new Date();
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const day = String(today.getDate()).padStart(2, '0');
-            const dateString = `${year}-${month}-${day}`;
-            document.getElementById('expInput').value = dateString;
+            document.getElementById('expInput').value = `${year}-${month}-${day}`;
         }
 
-        // ===== OPEN SCANNER =====
+        // ============================================================
+        //  OPEN SCANNER
+        // ============================================================
         function openScanner() {
             const overlay = document.getElementById('scannerOverlay');
             overlay.classList.add('active');
             
-            // Cek apakah sudah ada instance
             if (html5QrCode) {
                 html5QrCode.clear();
                 html5QrCode = null;
             }
 
-            // Cek support camera
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                showToast('⚠️ Browser tidak support kamera');
+                showToast('⚠️ Browser tidak support kamera', 'error');
                 overlay.classList.remove('active');
                 return;
             }
 
-            const scannerBox = document.getElementById('scanner-box');
-            
             html5QrCode = new Html5Qrcode("scanner-box");
 
             const config = {
@@ -447,50 +502,74 @@
                 onScanError
             ).catch(err => {
                 console.error('Scanner error:', err);
-                showToast('⚠️ Gagal akses kamera. Coba izinkan akses kamera.');
+                showToast('⚠️ Gagal akses kamera', 'error');
                 overlay.classList.remove('active');
             });
         }
 
-        // ===== SCAN SUCCESS =====
-        function onScanSuccess(decodedText, decodedResult) {
-            // decodedText = hasil scan barcode (EAN)
-            console.log('Scan result:', decodedText);
-            
-            // Isi ke input EAN
+        // ============================================================
+        //  SCAN SUCCESS
+        // ============================================================
+        function onScanSuccess(decodedText) {
             document.getElementById('eanInput').value = decodedText;
             
-            // Coba cari produk berdasarkan EAN (untuk auto-fill nama)
             const products = getProducts();
             const existing = products.find(p => p.ean === decodedText);
             if (existing) {
                 document.getElementById('nameInput').value = existing.name;
-                showToast(`✅ Ditemukan: ${existing.name}`);
+                document.getElementById('brandInput').value = existing.brand || '';
+                showToast(`✅ Ditemukan: ${existing.name}`, 'success');
             } else {
-                // Auto-fill nama dummy (bisa diganti dengan API produk)
-                const dummyNames = [
-                    'Susu Ultra', 'Kecap ABC', 'Mie Instan', 'Kopi Hitam',
-                    'Minyak Goreng', 'Gula Pasir', 'Roti Tawar', 'Saus Tomat',
-                    'Telur Ayam', 'Beras Premium', 'Minyak Zaitun', 'Madu Murni'
-                ];
-                const randomName = dummyNames[Math.floor(Math.random() * dummyNames.length)];
-                document.getElementById('nameInput').value = randomName;
-                showToast(`📦 Scan: ${randomName} (${decodedText})`);
+                // Coba cari dari masterlist GitHub
+                fetchProductFromGitHub(decodedText);
             }
             
-            // Tutup scanner setelah berhasil scan
-            setTimeout(() => {
-                closeScanner();
-            }, 500);
+            setTimeout(() => closeScanner(), 500);
         }
 
-        // ===== SCAN ERROR =====
+        // ============================================================
+        //  FETCH PRODUCT FROM GITHUB
+        // ============================================================
+        async function fetchProductFromGitHub(ean) {
+            try {
+                const response = await fetch(GITHUB_RAW_URL);
+                if (!response.ok) throw new Error('Gagal ambil data');
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                
+                // Cari produk dengan EAN/PLU
+                const found = jsonData.find(row => {
+                    const rowEan = String(row['EAN'] || row['ean'] || row['PLU'] || row['plu'] || row['Barcode'] || '').trim();
+                    return rowEan === ean;
+                });
+                
+                if (found) {
+                    const name = String(found['Long Description'] || found['description'] || found['Nama Produk'] || found['nama'] || '');
+                    const brand = String(found['Brand'] || found['brand'] || found['Merek'] || found['merek'] || '');
+                    document.getElementById('nameInput').value = name;
+                    document.getElementById('brandInput').value = brand;
+                    showToast(`📦 Ditemukan: ${name}`, 'success');
+                } else {
+                    showToast('🔍 EAN tidak ditemukan di masterlist', 'info');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+            }
+        }
+
+        // ============================================================
+        //  SCAN ERROR
+        // ============================================================
         function onScanError(err) {
-            // Ignore error (terus scanning)
-            // console.warn('Scan error:', err);
+            // Ignore
         }
 
-        // ===== CLOSE SCANNER =====
+        // ============================================================
+        //  CLOSE SCANNER
+        // ============================================================
         function closeScanner() {
             const overlay = document.getElementById('scannerOverlay');
             overlay.classList.remove('active');
@@ -499,40 +578,44 @@
                 html5QrCode.stop().then(() => {
                     html5QrCode.clear();
                     html5QrCode = null;
-                }).catch(err => {
-                    console.error('Stop scanner error:', err);
-                });
+                }).catch(err => console.error('Stop scanner error:', err));
             }
             isScanning = false;
         }
 
-        // ===== AUTO FILL DEMO (untuk testing tanpa kamera) =====
+        // ============================================================
+        //  AUTO FILL DEMO
+        // ============================================================
         function autoFillDemo() {
             const data = [
-                { ean: '8991001234567', name: 'Susu Ultra' },
-                { ean: '8992002345678', name: 'Kecap ABC' },
-                { ean: '8993003456789', name: 'Mie Instan' },
-                { ean: '8994004567890', name: 'Kopi Hitam' },
-                { ean: '8995005678901', name: 'Minyak Goreng' },
-                { ean: '8996006789012', name: 'Gula Pasir' }
+                { ean: '8991001234567', name: 'Susu Ultra Full Cream 1L', brand: 'Ultra' },
+                { ean: '8992002345678', name: 'Kecap Manis ABC 600ml', brand: 'ABC' },
+                { ean: '8993003456789', name: 'Mie Instan Goreng 80g', brand: 'Indomie' },
+                { ean: '8994004567890', name: 'Kopi Hitam Nescafe 100g', brand: 'Nescafe' },
+                { ean: '8995005678901', name: 'Minyak Goreng Sania 2L', brand: 'Sania' },
+                { ean: '8996006789012', name: 'Gula Pasir Gulaku 1kg', brand: 'Gulaku' }
             ];
             
             const random = data[Math.floor(Math.random() * data.length)];
             document.getElementById('eanInput').value = random.ean;
             document.getElementById('nameInput').value = random.name;
+            document.getElementById('brandInput').value = random.brand;
             
-            showToast(`📦 Demo: ${random.name}`);
+            showToast(`📦 Demo: ${random.name}`, 'info');
         }
 
-        // ===== ADD PRODUCT =====
-        function addProduct() {
+        // ============================================================
+        //  ADD PRODUCT + AUTO SYNC
+        // ============================================================
+        async function addProduct() {
             const ean = document.getElementById('eanInput').value.trim();
             const name = document.getElementById('nameInput').value.trim();
+            const brand = document.getElementById('brandInput').value.trim();
             const qty = parseInt(document.getElementById('qtyInput').value) || 1;
             const exp = document.getElementById('expInput').value;
 
             if (!ean || !name || !exp) {
-                showToast('⚠️ Mohon isi semua data!');
+                showToast('⚠️ Mohon isi EAN, Nama, dan Tanggal Exp!', 'error');
                 return;
             }
 
@@ -556,37 +639,133 @@
                 if (!confirm(`⚠️ "${existing.name}" sudah ada. Update quantity?`)) return;
                 existing.qty += qty;
                 existing.exp = exp;
-                showToast(`✅ Updated ${existing.name} (+${qty})`);
+                if (brand) existing.brand = brand;
+                showToast(`✅ Updated ${existing.name} (+${qty})`, 'success');
             } else {
-                products.push({ ean, name, qty, exp });
-                showToast(`✅ ${name} ditambahkan!`);
+                products.push({ ean, name, brand, qty, exp });
+                showToast(`✅ ${name} ditambahkan!`, 'success');
             }
 
             saveProducts(products);
             renderPreview();
             clearForm();
             setDefaultDate();
+            
+            // Auto sync ke GitHub
+            await syncToGitHub();
         }
 
-        // ===== DELETE PRODUCT =====
+        // ============================================================
+        //  DELETE PRODUCT
+        // ============================================================
         function deleteProduct(index) {
             if (!confirm('Hapus produk ini?')) return;
             let products = getProducts();
             products.splice(index, 1);
             saveProducts(products);
             renderPreview();
-            showToast('🗑️ Produk dihapus');
+            showToast('🗑️ Produk dihapus', 'info');
         }
 
-        // ===== CLEAR ALL =====
+        // ============================================================
+        //  CLEAR ALL
+        // ============================================================
         function clearAllData() {
             if (!confirm('⚠️ Hapus SEMUA data? Ini tidak bisa dibatalkan!')) return;
             localStorage.removeItem('products');
             renderPreview();
-            showToast('🗑️ Semua data dihapus');
+            showToast('🗑️ Semua data dihapus', 'info');
         }
 
-        // ===== RENDER PREVIEW =====
+        // ============================================================
+        //  SYNC TO GITHUB
+        // ============================================================
+        async function syncToGitHub() {
+            const statusText = document.getElementById('syncStatusText');
+            statusText.className = 'syncing';
+            statusText.textContent = '⏳ Syncing...';
+            
+            try {
+                const products = getProducts();
+                if (products.length === 0) {
+                    showToast('⚠️ Tidak ada data untuk disync', 'error');
+                    statusText.className = 'unsynced';
+                    statusText.textContent = '❌ Tidak ada data';
+                    return;
+                }
+
+                // Buat data Excel
+                const data = products.map((p, i) => ({
+                    'No': i + 1,
+                    'EAN': p.ean || '',
+                    'Long Description': p.name || '',
+                    'Brand': p.brand || '',
+                    'Qty': p.qty || 0,
+                    'Tanggal Exp': p.exp || '',
+                    'Status': new Date(p.exp) < new Date() ? 'Expired' : 'Active',
+                    'Last Update': new Date().toLocaleString('id-ID')
+                }));
+
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(data);
+                ws['!cols'] = [
+                    { wch: 6 }, { wch: 18 }, { wch: 30 }, 
+                    { wch: 15 }, { wch: 8 }, { wch: 20 }, { wch: 12 }, { wch: 22 }
+                ];
+                XLSX.utils.book_append_sheet(wb, ws, 'Products');
+
+                const buffer = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+                const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+
+                // Upload ke GitHub
+                let sha = null;
+                try {
+                    const getResponse = await fetch(GITHUB_API_URL, {
+                        headers: GITHUB_TOKEN ? { 'Authorization': `token ${GITHUB_TOKEN}` } : {}
+                    });
+                    if (getResponse.ok) {
+                        const fileData = await getResponse.json();
+                        sha = fileData.sha;
+                    }
+                } catch (e) {
+                    console.log('File belum ada, akan dibuat baru');
+                }
+
+                const uploadResponse = await fetch(GITHUB_API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(GITHUB_TOKEN ? { 'Authorization': `token ${GITHUB_TOKEN}` } : {})
+                    },
+                    body: JSON.stringify({
+                        message: `Update masterlist ${new Date().toLocaleString('id-ID')}`,
+                        content: base64,
+                        sha: sha || undefined,
+                        branch: 'main'
+                    })
+                });
+
+                if (!uploadResponse.ok) {
+                    const errorText = await uploadResponse.text();
+                    throw new Error(`HTTP ${uploadResponse.status}: ${errorText}`);
+                }
+
+                localStorage.setItem('lastSync', Date.now().toString());
+                statusText.className = 'synced';
+                statusText.textContent = `✅ ${new Date().toLocaleTimeString('id-ID')}`;
+                showToast('✅ Data berhasil disync ke GitHub!', 'success');
+
+            } catch (error) {
+                console.error('Sync error:', error);
+                statusText.className = 'unsynced';
+                statusText.textContent = '❌ Gagal sync';
+                showToast(`❌ Gagal sync: ${error.message}`, 'error');
+            }
+        }
+
+        // ============================================================
+        //  RENDER PREVIEW
+        // ============================================================
         function renderPreview() {
             const products = getProducts();
             const list = document.getElementById('previewList');
@@ -621,7 +800,7 @@
                 return `
                     <div class="preview-item">
                         <div class="info">
-                            <div class="name">${p.name}</div>
+                            <div class="name">${p.name} ${p.brand ? `(${p.brand})` : ''}</div>
                             <div class="detail">
                                 EAN: ${p.ean} | Qty: ${p.qty} | Exp: ${p.exp} (${diffDays} hari)
                                 <span class="badge ${statusClass}">${statusText}</span>
@@ -633,47 +812,65 @@
             }).join('');
 
             count.textContent = `${products.length} produk`;
+            updateSyncStatus();
         }
 
-        // ===== CLEAR FORM =====
+        // ============================================================
+        //  UPDATE SYNC STATUS
+        // ============================================================
+        function updateSyncStatus() {
+            const statusText = document.getElementById('syncStatusText');
+            const lastSync = localStorage.getItem('lastSync');
+            if (lastSync) {
+                statusText.className = 'synced';
+                statusText.textContent = `✅ ${new Date(parseInt(lastSync)).toLocaleTimeString('id-ID')}`;
+            } else {
+                statusText.className = 'unsynced';
+                statusText.textContent = '⏳ Belum sync';
+            }
+        }
+
+        // ============================================================
+        //  CLEAR FORM
+        // ============================================================
         function clearForm() {
             document.getElementById('eanInput').value = '';
             document.getElementById('nameInput').value = '';
+            document.getElementById('brandInput').value = '';
             document.getElementById('qtyInput').value = '1';
         }
 
-        // ===== TOAST =====
-        function showToast(message) {
+        // ============================================================
+        //  TOAST
+        // ============================================================
+        function showToast(message, type = 'info') {
             const existing = document.querySelector('.toast');
             if (existing) existing.remove();
 
             const toast = document.createElement('div');
-            toast.className = 'toast';
+            toast.className = `toast ${type}`;
             toast.textContent = message;
             document.body.appendChild(toast);
 
             setTimeout(() => {
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 400);
-            }, 2500);
+            }, 3000);
         }
 
-        // ===== INIT =====
+        // ============================================================
+        //  INIT
+        // ============================================================
         setDefaultDate();
         renderPreview();
+        updateSyncStatus();
 
-        // Close scanner dengan tombol ESC
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeScanner();
-            }
+            if (e.key === 'Escape') closeScanner();
         });
 
-        // Close scanner jika klik di luar area scanner
         document.getElementById('scannerOverlay').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeScanner();
-            }
+            if (e.target === this) closeScanner();
         });
     </script>
 </body>
