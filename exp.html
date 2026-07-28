@@ -443,8 +443,7 @@
         //  VARIABLES
         // ============================================================
         let html5QrCode = null;
-        let isScanning = false;
-        let isSyncing = false; // Flag untuk mencegah sync ganda
+        let isSyncing = false;
         const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/alexpim2/projectMT/main/masterlist.xlsx';
         const GITHUB_API_URL = 'https://api.github.com/repos/alexpim2/projectMT/contents/masterlist.xlsx';
 
@@ -452,11 +451,19 @@
         //  DATA
         // ============================================================
         function getProducts() {
-            return JSON.parse(localStorage.getItem('products')) || [];
+            try {
+                return JSON.parse(localStorage.getItem('products')) || [];
+            } catch (e) {
+                return [];
+            }
         }
 
         function saveProducts(products) {
-            localStorage.setItem('products', JSON.stringify(products));
+            try {
+                localStorage.setItem('products', JSON.stringify(products));
+            } catch (e) {
+                console.error('Save error:', e);
+            }
         }
 
         // ============================================================
@@ -521,7 +528,6 @@
                 document.getElementById('brandInput').value = existing.brand || '';
                 showToast(`✅ Ditemukan: ${existing.name}`, 'success');
             } else {
-                // Coba cari dari masterlist GitHub
                 fetchProductFromGitHub(decodedText);
             }
             
@@ -580,7 +586,6 @@
                     html5QrCode = null;
                 }).catch(err => console.error('Stop scanner error:', err));
             }
-            isScanning = false;
         }
 
         // ============================================================
@@ -605,7 +610,7 @@
         }
 
         // ============================================================
-        //  ADD PRODUCT (TANPA AUTO SYNC)
+        //  ADD PRODUCT
         // ============================================================
         function addProduct() {
             const ean = document.getElementById('eanInput').value.trim();
@@ -649,10 +654,9 @@
             clearForm();
             setDefaultDate();
             
-            // Update status sync ke "Belum sync"
             const statusText = document.getElementById('syncStatusText');
             statusText.className = 'unsynced';
-            statusText.textContent = '⏳ Belum sync (klik Sync)';
+            statusText.textContent = '⏳ Belum sync';
         }
 
         // ============================================================
@@ -668,7 +672,7 @@
             
             const statusText = document.getElementById('syncStatusText');
             statusText.className = 'unsynced';
-            statusText.textContent = '⏳ Belum sync (klik Sync)';
+            statusText.textContent = '⏳ Belum sync';
         }
 
         // ============================================================
@@ -687,32 +691,34 @@
         }
 
         // ============================================================
-        //  SYNC TO GITHUB (FIXED - NO STACK OVERFLOW)
+        //  SYNC TO GITHUB - VERSION SEDERHANA (NO STACK OVERFLOW)
         // ============================================================
         async function syncToGitHub() {
-            // Cegah sync ganda
+            // CEK: apakah sedang sync?
             if (isSyncing) {
                 showToast('⏳ Sync sedang berjalan...', 'info');
                 return;
             }
             
             const statusText = document.getElementById('syncStatusText');
+            
+            // CEK: apakah ada data?
+            const products = getProducts();
+            if (products.length === 0) {
+                showToast('⚠️ Tidak ada data untuk disync', 'error');
+                statusText.className = 'unsynced';
+                statusText.textContent = '❌ Tidak ada data';
+                return;
+            }
+
+            // MULAI SYNC
             isSyncing = true;
             statusText.className = 'syncing';
             statusText.textContent = '⏳ Syncing...';
             
             try {
-                const products = getProducts();
-                if (products.length === 0) {
-                    showToast('⚠️ Tidak ada data untuk disync', 'error');
-                    statusText.className = 'unsynced';
-                    statusText.textContent = '❌ Tidak ada data';
-                    isSyncing = false;
-                    return;
-                }
-
-                // Buat data Excel
-                const data = products.map((p, i) => ({
+                // 1. Buat data Excel
+                const excelData = products.map((p, i) => ({
                     'No': i + 1,
                     'EAN': p.ean || '',
                     'Long Description': p.name || '',
@@ -723,39 +729,32 @@
                     'Last Update': new Date().toLocaleString('id-ID')
                 }));
 
+                // 2. Buat workbook
                 const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.json_to_sheet(data);
-                ws['!cols'] = [
-                    { wch: 6 }, { wch: 18 }, { wch: 30 }, 
-                    { wch: 15 }, { wch: 8 }, { wch: 20 }, { wch: 12 }, { wch: 22 }
-                ];
+                const ws = XLSX.utils.json_to_sheet(excelData);
                 XLSX.utils.book_append_sheet(wb, ws, 'Products');
 
+                // 3. Convert ke base64
                 const buffer = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
                 const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
 
-                // Cek SHA file
+                // 4. Dapatkan SHA (jika file sudah ada)
                 let sha = null;
                 try {
-                    const getResponse = await fetch(GITHUB_API_URL, {
-                        cache: 'no-cache',
-                        headers: { 'Accept': 'application/vnd.github.v3+json' }
-                    });
-                    if (getResponse.ok) {
-                        const fileData = await getResponse.json();
+                    const getRes = await fetch(GITHUB_API_URL);
+                    if (getRes.ok) {
+                        const fileData = await getRes.json();
                         sha = fileData.sha;
                     }
                 } catch (e) {
-                    console.log('File belum ada, akan dibuat baru');
+                    // File belum ada, lanjutkan
                 }
 
-                // Upload ke GitHub
-                const uploadResponse = await fetch(GITHUB_API_URL, {
+                // 5. Upload ke GitHub
+                const uploadRes = await fetch(GITHUB_API_URL, {
                     method: 'PUT',
-                    cache: 'no-cache',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/vnd.github.v3+json'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         message: `Update masterlist ${new Date().toLocaleString('id-ID')}`,
@@ -765,11 +764,12 @@
                     })
                 });
 
-                if (!uploadResponse.ok) {
-                    const errorData = await uploadResponse.json();
-                    throw new Error(errorData.message || `HTTP ${uploadResponse.status}`);
+                if (!uploadRes.ok) {
+                    const err = await uploadRes.json();
+                    throw new Error(err.message || `HTTP ${uploadRes.status}`);
                 }
 
+                // 6. Sukses
                 localStorage.setItem('lastSync', Date.now().toString());
                 statusText.className = 'synced';
                 statusText.textContent = `✅ ${new Date().toLocaleTimeString('id-ID')}`;
@@ -778,8 +778,8 @@
             } catch (error) {
                 console.error('Sync error:', error);
                 statusText.className = 'unsynced';
-                statusText.textContent = `❌ ${error.message || 'Gagal sync'}`;
-                showToast(`❌ Gagal sync: ${error.message || 'Unknown error'}`, 'error');
+                statusText.textContent = `❌ ${error.message || 'Gagal'}`;
+                showToast(`❌ Gagal sync: ${error.message}`, 'error');
             } finally {
                 isSyncing = false;
             }
