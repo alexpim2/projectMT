@@ -348,13 +348,11 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="back-header">
             <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
             <h2><i class="fas fa-barcode"></i> Add Produk</h2>
         </div>
 
-        <!-- Form -->
         <div class="form-group">
             <label><i class="fas fa-barcode"></i> EAN / Barcode</label>
             <div class="input-group">
@@ -390,7 +388,7 @@
         </button>
 
         <button class="btn-primary btn-sync" onclick="syncToGitHub()">
-            <i class="fas fa-cloud-upload-alt"></i> Sync ke GitHub
+            <i class="fas fa-cloud-upload-alt"></i> Sync ke GitHub (Excel)
         </button>
 
         <button class="btn-primary btn-secondary" onclick="autoFillDemo()">
@@ -401,13 +399,14 @@
             <i class="fas fa-trash"></i> Hapus Semua Data
         </button>
 
-        <!-- Sync Status -->
         <div class="sync-status" id="syncStatus">
             <span><i class="fas fa-cloud-upload-alt"></i> GitHub Sync</span>
             <span id="syncStatusText" class="unsynced">⏳ Belum sync</span>
+            <button onclick="syncToGitHub()" style="background:#1a5a7a;color:white;border:none;padding:6px 14px;border-radius:12px;font-weight:600;cursor:pointer;">
+                <i class="fas fa-sync"></i> Sync
+            </button>
         </div>
 
-        <!-- Preview -->
         <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center;">
             <h4 style="color:#1a2639;"><i class="fas fa-list"></i> Preview</h4>
             <span id="previewCount" style="font-size:13px; color:#5a6a8a;">0 produk</span>
@@ -444,11 +443,10 @@
         // ============================================================
         let html5QrCode = null;
         let isSyncing = false;
-        const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/alexpim2/projectMT/main/masterlist.xlsx';
         const GITHUB_API_URL = 'https://api.github.com/repos/alexpim2/projectMT/contents/masterlist.xlsx';
 
         // ============================================================
-        //  DATA
+        //  DATA (JSON di browser)
         // ============================================================
         function getProducts() {
             try {
@@ -467,7 +465,7 @@
         }
 
         // ============================================================
-        //  SET DEFAULT DATE = HARI INI
+        //  SET DEFAULT DATE
         // ============================================================
         function setDefaultDate() {
             const today = new Date();
@@ -478,7 +476,7 @@
         }
 
         // ============================================================
-        //  OPEN SCANNER
+        //  SCANNER
         // ============================================================
         function openScanner() {
             const overlay = document.getElementById('scannerOverlay');
@@ -497,27 +495,17 @@
 
             html5QrCode = new Html5Qrcode("scanner-box");
 
-            const config = {
-                fps: 30,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
-            };
-
             html5QrCode.start(
                 { facingMode: "environment" },
-                config,
+                { fps: 30, qrbox: { width: 250, height: 250 } },
                 onScanSuccess,
                 onScanError
             ).catch(err => {
-                console.error('Scanner error:', err);
                 showToast('⚠️ Gagal akses kamera', 'error');
                 overlay.classList.remove('active');
             });
         }
 
-        // ============================================================
-        //  SCAN SUCCESS
-        // ============================================================
         function onScanSuccess(decodedText) {
             document.getElementById('eanInput').value = decodedText;
             
@@ -528,54 +516,14 @@
                 document.getElementById('brandInput').value = existing.brand || '';
                 showToast(`✅ Ditemukan: ${existing.name}`, 'success');
             } else {
-                fetchProductFromGitHub(decodedText);
+                showToast('🔍 EAN baru, silakan isi nama', 'info');
             }
             
             setTimeout(() => closeScanner(), 500);
         }
 
-        // ============================================================
-        //  FETCH PRODUCT FROM GITHUB
-        // ============================================================
-        async function fetchProductFromGitHub(ean) {
-            try {
-                const response = await fetch(GITHUB_RAW_URL + '?t=' + Date.now());
-                if (!response.ok) throw new Error('Gagal ambil data');
-                
-                const arrayBuffer = await response.arrayBuffer();
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                
-                const found = jsonData.find(row => {
-                    const rowEan = String(row['EAN'] || row['ean'] || row['PLU'] || row['plu'] || row['Barcode'] || '').trim();
-                    return rowEan === ean;
-                });
-                
-                if (found) {
-                    const name = String(found['Long Description'] || found['description'] || found['Nama Produk'] || found['nama'] || '');
-                    const brand = String(found['Brand'] || found['brand'] || found['Merek'] || found['merek'] || '');
-                    document.getElementById('nameInput').value = name;
-                    document.getElementById('brandInput').value = brand;
-                    showToast(`📦 Ditemukan: ${name}`, 'success');
-                } else {
-                    showToast('🔍 EAN tidak ditemukan di masterlist', 'info');
-                }
-            } catch (error) {
-                console.error('Fetch error:', error);
-            }
-        }
+        function onScanError(err) {}
 
-        // ============================================================
-        //  SCAN ERROR
-        // ============================================================
-        function onScanError(err) {
-            // Ignore
-        }
-
-        // ============================================================
-        //  CLOSE SCANNER
-        // ============================================================
         function closeScanner() {
             const overlay = document.getElementById('scannerOverlay');
             overlay.classList.remove('active');
@@ -595,22 +543,18 @@
             const data = [
                 { ean: '8991001234567', name: 'Susu Ultra Full Cream 1L', brand: 'Ultra' },
                 { ean: '8992002345678', name: 'Kecap Manis ABC 600ml', brand: 'ABC' },
-                { ean: '8993003456789', name: 'Mie Instan Goreng 80g', brand: 'Indomie' },
-                { ean: '8994004567890', name: 'Kopi Hitam Nescafe 100g', brand: 'Nescafe' },
-                { ean: '8995005678901', name: 'Minyak Goreng Sania 2L', brand: 'Sania' },
-                { ean: '8996006789012', name: 'Gula Pasir Gulaku 1kg', brand: 'Gulaku' }
+                { ean: '8993003456789', name: 'Mie Instan Goreng 80g', brand: 'Indomie' }
             ];
             
             const random = data[Math.floor(Math.random() * data.length)];
             document.getElementById('eanInput').value = random.ean;
             document.getElementById('nameInput').value = random.name;
             document.getElementById('brandInput').value = random.brand;
-            
             showToast(`📦 Demo: ${random.name}`, 'info');
         }
 
         // ============================================================
-        //  ADD PRODUCT
+        //  ADD PRODUCT (JSON di LocalStorage)
         // ============================================================
         function addProduct() {
             const ean = document.getElementById('eanInput').value.trim();
@@ -620,19 +564,8 @@
             const exp = document.getElementById('expInput').value;
 
             if (!ean || !name || !exp) {
-                showToast('⚠️ Mohon isi EAN, Nama, dan Tanggal Exp!', 'error');
+                showToast('⚠️ Mohon isi semua data!', 'error');
                 return;
-            }
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const expDate = new Date(exp);
-            expDate.setHours(0, 0, 0, 0);
-            
-            if (expDate < today) {
-                if (!confirm('⚠️ Tanggal kadaluarsa sudah lewat! Lanjutkan?')) {
-                    return;
-                }
             }
 
             let products = getProducts();
@@ -654,13 +587,12 @@
             clearForm();
             setDefaultDate();
             
-            const statusText = document.getElementById('syncStatusText');
-            statusText.className = 'unsynced';
-            statusText.textContent = '⏳ Belum sync';
+            document.getElementById('syncStatusText').className = 'unsynced';
+            document.getElementById('syncStatusText').textContent = '⏳ Belum sync';
         }
 
         // ============================================================
-        //  DELETE PRODUCT
+        //  DELETE & CLEAR
         // ============================================================
         function deleteProduct(index) {
             if (!confirm('Hapus produk ini?')) return;
@@ -669,55 +601,39 @@
             saveProducts(products);
             renderPreview();
             showToast('🗑️ Produk dihapus', 'info');
-            
-            const statusText = document.getElementById('syncStatusText');
-            statusText.className = 'unsynced';
-            statusText.textContent = '⏳ Belum sync';
         }
 
-        // ============================================================
-        //  CLEAR ALL
-        // ============================================================
         function clearAllData() {
-            if (!confirm('⚠️ Hapus SEMUA data? Ini tidak bisa dibatalkan!')) return;
+            if (!confirm('⚠️ Hapus SEMUA data?')) return;
             localStorage.removeItem('products');
             localStorage.removeItem('lastSync');
             renderPreview();
             showToast('🗑️ Semua data dihapus', 'info');
-            
-            const statusText = document.getElementById('syncStatusText');
-            statusText.className = 'unsynced';
-            statusText.textContent = '⏳ Belum sync';
         }
 
         // ============================================================
-        //  SYNC TO GITHUB - VERSION SEDERHANA (NO STACK OVERFLOW)
+        //  SYNC KE GITHUB -> TETAP EXCEL (.xlsx)
+        //  Data di browser JSON, tapi di GitHub tetep Excel
         // ============================================================
         async function syncToGitHub() {
-            // CEK: apakah sedang sync?
             if (isSyncing) {
                 showToast('⏳ Sync sedang berjalan...', 'info');
                 return;
             }
             
-            const statusText = document.getElementById('syncStatusText');
-            
-            // CEK: apakah ada data?
             const products = getProducts();
             if (products.length === 0) {
                 showToast('⚠️ Tidak ada data untuk disync', 'error');
-                statusText.className = 'unsynced';
-                statusText.textContent = '❌ Tidak ada data';
                 return;
             }
 
-            // MULAI SYNC
+            const statusText = document.getElementById('syncStatusText');
             isSyncing = true;
             statusText.className = 'syncing';
             statusText.textContent = '⏳ Syncing...';
             
             try {
-                // 1. Buat data Excel
+                // 1. Buat data Excel dari JSON
                 const excelData = products.map((p, i) => ({
                     'No': i + 1,
                     'EAN': p.ean || '',
@@ -725,37 +641,36 @@
                     'Brand': p.brand || '',
                     'Qty': p.qty || 0,
                     'Tanggal Exp': p.exp || '',
-                    'Status': new Date(p.exp) < new Date() ? 'Expired' : 'Active',
-                    'Last Update': new Date().toLocaleString('id-ID')
+                    'Status': new Date(p.exp) < new Date() ? 'Expired' : 'Active'
                 }));
 
-                // 2. Buat workbook
+                // 2. Buat workbook Excel
                 const wb = XLSX.utils.book_new();
                 const ws = XLSX.utils.json_to_sheet(excelData);
-                XLSX.utils.book_append_sheet(wb, ws, 'Products');
+                ws['!cols'] = [
+                    { wch: 6 }, { wch: 18 }, { wch: 30 }, 
+                    { wch: 15 }, { wch: 8 }, { wch: 20 }, { wch: 12 }
+                ];
+                XLSX.utils.book_append_sheet(wb, ws, 'MasterList');
 
                 // 3. Convert ke base64
                 const buffer = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
                 const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
 
-                // 4. Dapatkan SHA (jika file sudah ada)
+                // 4. Cek SHA file
                 let sha = null;
                 try {
-                    const getRes = await fetch(GITHUB_API_URL);
-                    if (getRes.ok) {
-                        const fileData = await getRes.json();
-                        sha = fileData.sha;
+                    const res = await fetch(GITHUB_API_URL);
+                    if (res.ok) {
+                        const data = await res.json();
+                        sha = data.sha;
                     }
-                } catch (e) {
-                    // File belum ada, lanjutkan
-                }
+                } catch (e) {}
 
-                // 5. Upload ke GitHub
+                // 5. Upload ke GitHub (tetap .xlsx)
                 const uploadRes = await fetch(GITHUB_API_URL, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         message: `Update masterlist ${new Date().toLocaleString('id-ID')}`,
                         content: base64,
@@ -769,11 +684,10 @@
                     throw new Error(err.message || `HTTP ${uploadRes.status}`);
                 }
 
-                // 6. Sukses
                 localStorage.setItem('lastSync', Date.now().toString());
                 statusText.className = 'synced';
                 statusText.textContent = `✅ ${new Date().toLocaleTimeString('id-ID')}`;
-                showToast('✅ Data berhasil disync ke GitHub!', 'success');
+                showToast('✅ Data berhasil disync ke GitHub (Excel)!', 'success');
 
             } catch (error) {
                 console.error('Sync error:', error);
@@ -804,20 +718,12 @@
                 today.setHours(0, 0, 0, 0);
                 const expDate = new Date(p.exp);
                 expDate.setHours(0, 0, 0, 0);
-                
-                const diffTime = expDate - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
                 
                 let statusClass = 'badge-ok';
                 let statusText = '✅ OK';
-                
-                if (diffDays < 0) {
-                    statusClass = 'badge-exp';
-                    statusText = '❌ Expired';
-                } else if (diffDays <= 3) {
-                    statusClass = 'badge-warning';
-                    statusText = '⚠️ Segera';
-                }
+                if (diffDays < 0) { statusClass = 'badge-exp'; statusText = '❌ Expired'; }
+                else if (diffDays <= 3) { statusClass = 'badge-warning'; statusText = '⚠️ Segera'; }
                 
                 return `
                     <div class="preview-item">
