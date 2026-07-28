@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Master List - Expiry</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #f0f4f8, #dce3ed);
+            min-height: 100vh;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            padding: 24px 20px 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+            margin-top: 20px;
+        }
+        .back-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.6);
+            width: 44px;
+            height: 44px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #1f2b44;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.8);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .back-btn:active {
+            transform: scale(0.92);
+        }
+        .back-header h2 {
+            font-size: 22px;
+            color: #1a2639;
+        }
+        .back-header h2 i {
+            margin-right: 10px;
+            color: #3a5a9a;
+        }
+
+        /* ===== STATS ===== */
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            flex: 1;
+            min-width: 80px;
+            background: rgba(255,255,255,0.5);
+            padding: 12px 16px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        .stat-item .number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a2639;
+        }
+        .stat-item .label {
+            font-size: 12px;
+            color: #5a6a8a;
+            margin-top: 2px;
+        }
+        .stat-item.warning .number {
+            color: #b33a3a;
+        }
+        .stat-item.success .number {
+            color: #2a7a4a;
+        }
+
+        /* ===== SEARCH & FILTER ===== */
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .search-bar input {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 16px;
+            border: 2px solid #d0d9e8;
+            border-radius: 16px;
+            font-size: 15px;
+            background: white;
+            transition: 0.2s;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: #3a5a9a;
+            box-shadow: 0 0 0 3px rgba(58, 90, 154, 0.1);
+        }
+        .search-bar select {
+            padding: 12px 16px;
+            border: 2px solid #d0d9e8;
+            border-radius: 16px;
+            font-size: 15px;
+            background: white;
+            transition: 0.2s;
+        }
+        .search-bar select:focus {
+            outline: none;
+            border-color: #3a5a9a;
+        }
+
+        /* ===== TABLE ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid #e8edf5;
+            background: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 600px;
+        }
+        thead {
+            background: #1f2b44;
+            color: white;
+        }
+        thead th {
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        thead th i {
+            margin-right: 6px;
+        }
+        tbody tr {
+            border-bottom: 1px solid #eef2f7;
+            transition: 0.15s;
+        }
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+        tbody tr:hover {
+            background: #f7f9fc;
+        }
+        tbody td {
+            padding: 12px 12px;
+            vertical-align: middle;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .status-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status-unknown {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7a8aaa;
+        }
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        .empty-state h3 {
+            font-size: 18px;
+            color: #4a5a7a;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20,30,50,0.9);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-size: 15px;
+            z-index: 999;
+            max-width: 90%;
+            text-align: center;
+            transition: opacity 0.4s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .container { padding: 16px; }
+            .stats-bar { gap: 8px; }
+            .stat-item { padding: 10px 12px; min-width: 60px; }
+            .stat-item .number { font-size: 20px; }
+            .search-bar input { min-width: 120px; padding: 10px 14px; }
+            .search-bar select { padding: 10px 14px; font-size: 14px; }
+            table { font-size: 13px; min-width: 500px; }
+            thead th { padding: 10px 8px; font-size: 12px; }
+            tbody td { padding: 10px 8px; }
+        }
+        @media (max-width: 400px) {
+            .stat-item { min-width: 50px; padding: 8px 10px; }
+            .stat-item .number { font-size: 17px; }
+            table { font-size: 12px; min-width: 400px; }
+            thead th { padding: 8px 6px; font-size: 11px; }
+            tbody td { padding: 8px 6px; }
+            .status-badge { font-size: 10px; padding: 2px 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="back-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <h2><i class="fas fa-archive"></i> Master List Exp</h2>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item">
+                <div class="number" id="totalCount">0</div>
+                <div class="label"><i class="fas fa-boxes"></i> Total Produk</div>
+            </div>
+            <div class="stat-item success">
+                <div class="number" id="okCount">0</div>
+                <div class="label"><i class="fas fa-check-circle"></i> Segar</div>
+            </div>
+            <div class="stat-item warning">
+                <div class="number" id="warningCount">0</div>
+                <div class="label"><i class="fas fa-exclamation-triangle"></i> Segera</div>
+            </div>
+            <div class="stat-item warning">
+                <div class="number" id="expiredCount">0</div>
+                <div class="label"><i class="fas fa-times-circle"></i> Expired</div>
+            </div>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="🔍 Cari nama atau EAN..." oninput="filterTable()" />
+            <select id="filterStatus" onchange="filterTable()">
+                <option value="all">📋 Semua Status</option>
+                <option value="ok">✅ Segar</option>
+                <option value="warning">⚠️ Segera (≤3 hari)</option>
+                <option value="expired">❌ Expired</option>
+            </select>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th><i class="fas fa-box"></i> Nama</th>
+                        <th><i class="fas fa-barcode"></i> EAN</th>
+                        <th><i class="fas fa-sort-amount-up"></i> Qty</th>
+                        <th><i class="fas fa-calendar-alt"></i> Exp</th>
+                        <th><i class="fas fa-hourglass-half"></i> Hari</th>
+                        <th><i class="fas fa-check-circle"></i> Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data akan di-render di sini -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <span style="font-size: 13px; color: #5a6a8a;" id="footerInfo">Menampilkan 0 produk</span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn-small" onclick="exportToExcel()" style="background: #2a7a4a; color: white; border: none; padding: 8px 16px; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+                <button class="btn-small" onclick="refreshData()" style="background: #4a6a8a; color: white; border: none; padding: 8px 16px; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // ===== DATA =====
+        function getProducts() {
+            return JSON.parse(localStorage.getItem('products')) || [];
+        }
+
+        function saveProducts(products) {
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
+        // ===== RENDER TABLE =====
+        function renderTable(filteredData) {
+            const tbody = document.getElementById('tableBody');
+            const data = filteredData || getProducts();
+            
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="fas fa-box-open"></i>
+                                <h3>Belum ada produk</h3>
+                                <p style="font-size: 14px; color: #8a9aaa;">Tambahkan produk melalui halaman Add Produk</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.map((p, i) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const expDate = new Date(p.exp);
+                expDate.setHours(0, 0, 0, 0);
+                
+                const diffTime = expDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                let statusClass = 'status-ok';
+                let statusText = '✅ Segar';
+                
+                if (diffDays < 0) {
+                    statusClass = 'status-expired';
+                    statusText = '❌ Expired';
+                } else if (diffDays <= 3) {
+                    statusClass = 'status-warning';
+                    statusText = '⚠️ Segera';
+                }
+                
+                return `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td><strong>${p.name || '-'}</strong></td>
+                        <td>${p.ean || '-'}</td>
+                        <td>${p.qty || 0}</td>
+                        <td>${p.exp || '-'}</td>
+                        <td>${isNaN(diffDays) ? '-' : diffDays}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ===== UPDATE STATS =====
+        function updateStats(products) {
+            const data = products || getProducts();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let ok = 0, warning = 0, expired = 0;
+            
+            data.forEach(p => {
+                const expDate = new Date(p.exp);
+                expDate.setHours(0, 0, 0, 0);
+                const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+                
+                if (diffDays < 0) expired++;
+                else if (diffDays <= 3) warning++;
+                else ok++;
+            });
+            
+            document.getElementById('totalCount').textContent = data.length;
+            document.getElementById('okCount').textContent = ok;
+            document.getElementById('warningCount').textContent = warning;
+            document.getElementById('expiredCount').textContent = expired;
+            document.getElementById('footerInfo').textContent = `Menampilkan ${data.length} produk`;
+        }
+
+        // ===== FILTER & SEARCH =====
+        function filterTable() {
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            const statusFilter = document.getElementById('filterStatus').value;
+            
+            let products = getProducts();
+            
+            // Filter by search
+            if (search) {
+                products = products.filter(p => 
+                    p.name.toLowerCase().includes(search) || 
+                    (p.ean && p.ean.includes(search))
+                );
+            }
+            
+            // Filter by status
+            if (statusFilter !== 'all') {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                products = products.filter(p => {
+                    const expDate = new Date(p.exp);
+                    expDate.setHours(0, 0, 0, 0);
+                    const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+                    
+                    if (statusFilter === 'ok') return diffDays > 3;
+                    if (statusFilter === 'warning') return diffDays >= 0 && diffDays <= 3;
+                    if (statusFilter === 'expired') return diffDays < 0;
+                    return true;
+                });
+            }
+            
+            renderTable(products);
+            updateStats(products);
+        }
+
+        // ===== EXPORT TO EXCEL =====
+        function exportToExcel() {
+            const products = getProducts();
+            if (products.length === 0) {
+                showToast('⚠️ Belum ada data untuk di-export!');
+                return;
+            }
+
+            const data = products.map((p, i) => ({
+                'No': i + 1,
+                'Nama Produk': p.name || '-',
+                'EAN': p.ean || '-',
+                'Qty': p.qty || 0,
+                'Tanggal Exp': p.exp || '-',
+                'Status': new Date(p.exp) < new Date() ? 'Expired' : 'Active'
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, 'Products');
+
+            const fileName = `masterlist_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            showToast(`✅ File "${fileName}" berhasil di-download!`);
+        }
+
+        // ===== REFRESH DATA =====
+        function refreshData() {
+            renderTable();
+            updateStats();
+            showToast('🔄 Data diperbarui');
+        }
+
+        // ===== TOAST =====
+        function showToast(message) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 400);
+            }, 2500);
+        }
+
+        // ===== INIT =====
+        renderTable();
+        updateStats();
+
+        // Auto refresh setiap 10 detik
+        setInterval(() => {
+            const products = getProducts();
+            renderTable(products);
+            updateStats(products);
+        }, 10000);
+    </script>
+</body>
+</html>
