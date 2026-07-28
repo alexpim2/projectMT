@@ -122,14 +122,6 @@
             border-radius: 20px;
             font-weight: 600;
         }
-        .stats .expiring-badge {
-            background: #fff3cd;
-            color: #856404;
-            padding: 2px 14px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 13px;
-        }
         .footer {
             text-align: center;
             margin-top: 20px;
@@ -274,7 +266,6 @@
             document.getElementById('totalCount').textContent = products.length;
             document.getElementById('expiringCount').textContent = expiring.length;
             
-            // Update last sync info
             const lastSync = localStorage.getItem('lastSync');
             if (lastSync) {
                 document.getElementById('lastSyncInfo').innerHTML = 
@@ -318,6 +309,7 @@
                 'No': i + 1,
                 'Nama Produk': p.name || '-',
                 'EAN': p.ean || '-',
+                'Brand': p.brand || '-',
                 'Qty': p.qty || 0,
                 'Tanggal Exp': p.exp || '-',
                 'Status': new Date(p.exp) < new Date() ? 'Expired' : 'Active'
@@ -335,6 +327,7 @@
 
         // ============================================================
         //  SYNC MASTER DATA DARI GITHUB
+        //  Mapping: EAN/PLU → ean, Long Description → name, Brand → brand
         // ============================================================
         async function syncFromGitHub() {
             showToast('⏳ Mengambil data master dari GitHub...', 'info');
@@ -352,41 +345,124 @@
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const jsonData = XLSX.utils.sheet_to_json(firstSheet);
                 
+                // ===== VALIDASI DATA =====
+                let validData = [];
+                let invalidData = [];
+                let kolomDitemukan = [];
+                
                 if (!jsonData || jsonData.length === 0) {
-                    showToast('⚠️ File kosong atau tidak valid', 'error');
+                    showToast('⚠️ File masterlist kosong atau tidak valid!', 'error');
                     return;
                 }
                 
-                // Mapping data
-                const products = jsonData.map(row => {
-                    // Cari kolom yang sesuai
-                    const ean = String(row['EAN'] || row['ean'] || row['Barcode'] || row['barcode'] || '');
-                    const name = String(row['Nama Produk'] || row['nama'] || row['Product Name'] || row['Nama'] || row['name'] || '');
-                    const qty = parseInt(row['Qty'] || row['qty'] || row['Quantity'] || row['quantity'] || 0);
-                    const exp = formatDate(row['Tanggal Exp'] || row['exp'] || row['Tanggal Kadaluarsa'] || row['Exp'] || '');
+                // Cek kolom yang tersedia
+                const availableColumns = Object.keys(jsonData[0] || {});
+                console.log('📋 Kolom yang tersedia:', availableColumns);
+                
+                // Cari mapping kolom
+                const colEan = findColumn(availableColumns, ['EAN', 'ean', 'PLU', 'plu', 'Barcode', 'barcode', 'Kode', 'kode']);
+                const colName = findColumn(availableColumns, ['Long Description', 'long description', 'Description', 'description', 'Nama Produk', 'nama', 'Product Name', 'Nama']);
+                const colBrand = findColumn(availableColumns, ['Brand', 'brand', 'Merek', 'merek', 'Merk', 'merk']);
+                
+                kolomDitemukan = [
+                    colEan ? `EAN: "${colEan}"` : 'EAN: tidak ditemukan',
+                    colName ? `Nama: "${colName}"` : 'Nama: tidak ditemukan',
+                    colBrand ? `Brand: "${colBrand}"` : 'Brand: tidak ditemukan'
+                ];
+                
+                console.log('🔍 Mapping kolom:', kolomDitemukan);
+                
+                if (!colEan || !colName) {
+                    let msg = '⚠️ Kolom penting tidak ditemukan!\n\n';
+                    msg += `Kolom yang tersedia:\n${availableColumns.join(', ')}\n\n`;
+                    msg += `Yang dibutuhkan:\n`;
+                    msg += `- EAN / PLU (untuk kode produk)\n`;
+                    msg += `- Long Description / Nama (untuk nama produk)\n`;
+                    msg += `- Brand (opsional, untuk merek)\n\n`;
+                    msg += `Pastikan file Excel memiliki kolom yang sesuai.`;
+                    alert(msg);
+                    showToast('❌ Kolom EAN atau Nama tidak ditemukan!', 'error');
+                    return;
+                }
+                
+                // Mapping data dengan validasi
+                jsonData.forEach((row, index) => {
+                    const ean = String(row[colEan] || '').trim();
+                    const name = String(row[colName] || '').trim();
+                    const brand = colBrand ? String(row[colBrand] || '').trim() : '';
+                    const qty = 1; // Default qty = 1, nanti diisi manual di exp.html
+                    const exp = ''; // Kosong, nanti diisi manual di exp.html
                     
-                    return { ean, name, qty, exp };
-                }).filter(p => p.ean && p.name);
+                    // Validasi per baris
+                    const errors = [];
+                    if (!ean) errors.push('EAN/PLU kosong');
+                    if (!name) errors.push('Nama kosong');
+                    
+                    if (errors.length === 0) {
+                        validData.push({ ean, name, brand, qty, exp });
+                    } else {
+                        invalidData.push({
+                            row: index + 1,
+                            data: row,
+                            errors: errors
+                        });
+                    }
+                });
                 
-                if (products.length === 0) {
-                    showToast('⚠️ Tidak ada data valid di masterlist', 'error');
+                // ===== TAMPILKAN HASIL VALIDASI =====
+                console.log(`✅ Data valid: ${validData.length}`);
+                console.log(`❌ Data invalid: ${invalidData.length}`);
+                
+                // Tampilkan info kolom
+                let kolomInfo = `📋 Kolom yang terdeteksi:\n`;
+                kolomInfo += `• EAN/PLU: ${colEan || '❌ Tidak ditemukan'}\n`;
+                kolomInfo += `• Nama: ${colName || '❌ Tidak ditemukan'}\n`;
+                kolomInfo += `• Brand: ${colBrand || '⚠️ Tidak ditemukan (opsional)'}\n\n`;
+                
+                if (invalidData.length > 0) {
+                    let invalidMsg = `⚠️ Ditemukan ${invalidData.length} data tidak valid:\n\n`;
+                    invalidData.slice(0, 10).forEach(item => {
+                        invalidMsg += `Baris ${item.row}: ${item.errors.join(', ')}\n`;
+                        // Tampilkan data yang ada
+                        const dataSample = Object.entries(item.data)
+                            .filter(([k, v]) => v)
+                            .map(([k, v]) => `${k}: ${v}`)
+                            .join(', ');
+                        if (dataSample) {
+                            invalidMsg += `  Data: ${dataSample}\n\n`;
+                        }
+                    });
+                    if (invalidData.length > 10) {
+                        invalidMsg += `... dan ${invalidData.length - 10} data lainnya`;
+                    }
+                    alert(kolomInfo + invalidMsg);
+                } else {
+                    alert(kolomInfo + `✅ Semua ${validData.length} data valid!`);
+                }
+                
+                if (validData.length === 0) {
+                    showToast(`❌ Tidak ada data valid! ${invalidData.length} data invalid`, 'error');
                     return;
                 }
                 
-                // Merge dengan data lokal
+                // ===== MERGE DENGAN DATA LOKAL =====
                 let localProducts = getProducts();
                 let merged = [...localProducts];
                 let added = 0, updated = 0;
                 
-                products.forEach(master => {
+                validData.forEach(master => {
                     const existingIndex = merged.findIndex(p => p.ean === master.ean);
                     if (existingIndex >= 0) {
-                        // Update data master (pertahankan qty lokal jika ada)
+                        // Update data master
+                        merged[existingIndex].name = master.name;
+                        merged[existingIndex].brand = master.brand;
+                        // Pertahankan qty dan exp lokal jika ada
                         if (!merged[existingIndex].qty || merged[existingIndex].qty === 0) {
                             merged[existingIndex].qty = master.qty;
                         }
-                        merged[existingIndex].name = master.name;
-                        merged[existingIndex].exp = master.exp;
+                        if (!merged[existingIndex].exp) {
+                            merged[existingIndex].exp = master.exp;
+                        }
                         updated++;
                     } else {
                         merged.push(master);
@@ -398,6 +474,20 @@
                 localStorage.setItem('lastSync', Date.now().toString());
                 updateStats();
                 
+                // ===== NOTIFIKASI LENGKAP =====
+                let message = `✅ Sync berhasil!\n\n`;
+                message += `📦 ${validData.length} data valid dari master\n`;
+                message += `🆕 ${added} produk baru ditambahkan\n`;
+                message += `🔄 ${updated} produk diupdate\n`;
+                if (invalidData.length > 0) {
+                    message += `\n⚠️ ${invalidData.length} data tidak valid (cek detail)`;
+                }
+                message += `\n\n📋 Kolom yang digunakan:\n`;
+                message += `• EAN/PLU → ${colEan}\n`;
+                message += `• Nama → ${colName}\n`;
+                message += `• Brand → ${colBrand || '(tidak digunakan)'}`;
+                
+                alert(message);
                 showToast(`✅ Sync berhasil! ${added} baru, ${updated} update`, 'success');
                 
             } catch (error) {
@@ -407,25 +497,41 @@
         }
 
         // ============================================================
+        //  FIND COLUMN (mencari kolom dengan berbagai kemungkinan nama)
+        // ============================================================
+        function findColumn(availableColumns, possibleNames) {
+            for (const name of possibleNames) {
+                const found = availableColumns.find(col => 
+                    col.toLowerCase().trim() === name.toLowerCase().trim()
+                );
+                if (found) return found;
+            }
+            // Coba partial match
+            for (const name of possibleNames) {
+                const found = availableColumns.find(col => 
+                    col.toLowerCase().includes(name.toLowerCase())
+                );
+                if (found) return found;
+            }
+            return null;
+        }
+
+        // ============================================================
         //  FORMAT TANGGAL
         // ============================================================
         function formatDate(dateStr) {
             if (!dateStr) return '';
             
-            // Coba parse berbagai format
             let date = new Date(dateStr);
             if (!isNaN(date.getTime())) {
                 return date.toISOString().split('T')[0];
             }
             
-            // Coba format dd/mm/yyyy atau mm/dd/yyyy
             const parts = String(dateStr).split(/[\/\-.]/);
             if (parts.length === 3) {
-                // Coba dd/mm/yyyy
                 let d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
                 if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
                 
-                // Coba mm/dd/yyyy
                 d = new Date(`${parts[2]}-${parts[0]}-${parts[1]}`);
                 if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
             }
@@ -455,8 +561,6 @@
         //  INIT
         // ============================================================
         updateStats();
-
-        // Auto update stats setiap 10 detik
         setInterval(updateStats, 10000);
     </script>
 </body>

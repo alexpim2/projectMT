@@ -21,7 +21,7 @@
             align-items: flex-start;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             background: rgba(255,255,255,0.9);
             backdrop-filter: blur(12px);
@@ -73,20 +73,20 @@
         }
         .stat-item {
             flex: 1;
-            min-width: 80px;
+            min-width: 70px;
             background: rgba(255,255,255,0.5);
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: 16px;
             text-align: center;
             border: 1px solid rgba(255,255,255,0.6);
         }
         .stat-item .number {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
             color: #1a2639;
         }
         .stat-item .label {
-            font-size: 12px;
+            font-size: 11px;
             color: #5a6a8a;
             margin-top: 2px;
         }
@@ -107,7 +107,7 @@
         .search-bar input {
             flex: 1;
             min-width: 150px;
-            padding: 12px 16px;
+            padding: 10px 16px;
             border: 2px solid #d0d9e8;
             border-radius: 16px;
             font-size: 15px;
@@ -120,7 +120,7 @@
             box-shadow: 0 0 0 3px rgba(58, 90, 154, 0.1);
         }
         .search-bar select {
-            padding: 12px 16px;
+            padding: 10px 16px;
             border: 2px solid #d0d9e8;
             border-radius: 16px;
             font-size: 15px;
@@ -150,7 +150,7 @@
             color: white;
         }
         thead th {
-            padding: 14px 12px;
+            padding: 12px 10px;
             text-align: left;
             font-weight: 600;
             font-size: 13px;
@@ -171,7 +171,7 @@
             background: #f7f9fc;
         }
         tbody td {
-            padding: 12px 12px;
+            padding: 10px 10px;
             vertical-align: middle;
         }
         .status-badge {
@@ -197,6 +197,53 @@
         .status-unknown {
             background: #e2e3e5;
             color: #383d41;
+        }
+
+        /* ===== PAGINATION ===== */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .pagination-info {
+            font-size: 13px;
+            color: #5a6a8a;
+        }
+        .pagination-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .pagination-btn {
+            padding: 6px 14px;
+            border: 2px solid #d0d9e8;
+            border-radius: 12px;
+            background: white;
+            color: #1a2639;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            min-width: 40px;
+            text-align: center;
+        }
+        .pagination-btn:hover {
+            background: #eef2f7;
+        }
+        .pagination-btn.active {
+            background: #1f2b44;
+            color: white;
+            border-color: #1f2b44;
+        }
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .pagination-btn:active {
+            transform: scale(0.95);
         }
 
         /* ===== EMPTY STATE ===== */
@@ -237,22 +284,24 @@
         /* ===== RESPONSIVE ===== */
         @media (max-width: 600px) {
             .container { padding: 16px; }
-            .stats-bar { gap: 8px; }
-            .stat-item { padding: 10px 12px; min-width: 60px; }
-            .stat-item .number { font-size: 20px; }
-            .search-bar input { min-width: 120px; padding: 10px 14px; }
-            .search-bar select { padding: 10px 14px; font-size: 14px; }
+            .stats-bar { gap: 6px; }
+            .stat-item { padding: 8px 10px; min-width: 50px; }
+            .stat-item .number { font-size: 18px; }
+            .search-bar input { min-width: 100px; padding: 8px 12px; font-size: 14px; }
+            .search-bar select { padding: 8px 12px; font-size: 14px; }
             table { font-size: 13px; min-width: 500px; }
-            thead th { padding: 10px 8px; font-size: 12px; }
-            tbody td { padding: 10px 8px; }
-        }
-        @media (max-width: 400px) {
-            .stat-item { min-width: 50px; padding: 8px 10px; }
-            .stat-item .number { font-size: 17px; }
-            table { font-size: 12px; min-width: 400px; }
             thead th { padding: 8px 6px; font-size: 11px; }
             tbody td { padding: 8px 6px; }
-            .status-badge { font-size: 10px; padding: 2px 8px; }
+            .pagination-btn { padding: 4px 10px; font-size: 12px; min-width: 32px; }
+        }
+        @media (max-width: 400px) {
+            .stat-item { min-width: 40px; padding: 6px 8px; }
+            .stat-item .number { font-size: 15px; }
+            table { font-size: 11px; min-width: 400px; }
+            thead th { padding: 6px 4px; font-size: 10px; }
+            tbody td { padding: 6px 4px; }
+            .status-badge { font-size: 9px; padding: 2px 6px; }
+            .pagination-btn { padding: 3px 8px; font-size: 11px; min-width: 28px; }
         }
     </style>
 </head>
@@ -268,7 +317,7 @@
         <div class="stats-bar" id="statsBar">
             <div class="stat-item">
                 <div class="number" id="totalCount">0</div>
-                <div class="label"><i class="fas fa-boxes"></i> Total Produk</div>
+                <div class="label"><i class="fas fa-boxes"></i> Total</div>
             </div>
             <div class="stat-item success">
                 <div class="number" id="okCount">0</div>
@@ -286,8 +335,8 @@
 
         <!-- Search & Filter -->
         <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="🔍 Cari nama atau EAN..." oninput="filterTable()" />
-            <select id="filterStatus" onchange="filterTable()">
+            <input type="text" id="searchInput" placeholder="🔍 Cari nama atau EAN..." oninput="applyFilters()" />
+            <select id="filterStatus" onchange="applyFilters()">
                 <option value="all">📋 Semua Status</option>
                 <option value="ok">✅ Segar</option>
                 <option value="warning">⚠️ Segera (≤3 hari)</option>
@@ -315,23 +364,37 @@
             </table>
         </div>
 
-        <!-- Footer -->
-        <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <span style="font-size: 13px; color: #5a6a8a;" id="footerInfo">Menampilkan 0 produk</span>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button class="btn-small" onclick="exportToExcel()" style="background: #2a7a4a; color: white; border: none; padding: 8px 16px; border-radius: 12px; font-weight: 600; cursor: pointer;">
-                    <i class="fas fa-file-excel"></i> Export Excel
-                </button>
-                <button class="btn-small" onclick="refreshData()" style="background: #4a6a8a; color: white; border: none; padding: 8px 16px; border-radius: 12px; font-weight: 600; cursor: pointer;">
-                    <i class="fas fa-sync"></i> Refresh
-                </button>
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <span class="pagination-info" id="paginationInfo">Menampilkan 0 dari 0 produk</span>
+            <div class="pagination-buttons" id="paginationButtons">
+                <!-- Tombol pagination akan di-render di sini -->
             </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+            <button class="pagination-btn" onclick="exportToExcel()" style="background: #2a7a4a; color: white; border-color: #2a7a4a;">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </button>
+            <button class="pagination-btn" onclick="refreshData()" style="background: #4a6a8a; color: white; border-color: #4a6a8a;">
+                <i class="fas fa-sync"></i> Refresh
+            </button>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        // ===== DATA =====
+        // ============================================================
+        //  VARIABLES
+        // ============================================================
+        let currentPage = 1;
+        const ITEMS_PER_PAGE = 10;
+        let filteredData = [];
+
+        // ============================================================
+        //  DATA
+        // ============================================================
         function getProducts() {
             return JSON.parse(localStorage.getItem('products')) || [];
         }
@@ -340,87 +403,10 @@
             localStorage.setItem('products', JSON.stringify(products));
         }
 
-        // ===== RENDER TABLE =====
-        function renderTable(filteredData) {
-            const tbody = document.getElementById('tableBody');
-            const data = filteredData || getProducts();
-            
-            if (data.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7">
-                            <div class="empty-state">
-                                <i class="fas fa-box-open"></i>
-                                <h3>Belum ada produk</h3>
-                                <p style="font-size: 14px; color: #8a9aaa;">Tambahkan produk melalui halaman Add Produk</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = data.map((p, i) => {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const expDate = new Date(p.exp);
-                expDate.setHours(0, 0, 0, 0);
-                
-                const diffTime = expDate - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                let statusClass = 'status-ok';
-                let statusText = '✅ Segar';
-                
-                if (diffDays < 0) {
-                    statusClass = 'status-expired';
-                    statusText = '❌ Expired';
-                } else if (diffDays <= 3) {
-                    statusClass = 'status-warning';
-                    statusText = '⚠️ Segera';
-                }
-                
-                return `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td><strong>${p.name || '-'}</strong></td>
-                        <td>${p.ean || '-'}</td>
-                        <td>${p.qty || 0}</td>
-                        <td>${p.exp || '-'}</td>
-                        <td>${isNaN(diffDays) ? '-' : diffDays}</td>
-                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // ===== UPDATE STATS =====
-        function updateStats(products) {
-            const data = products || getProducts();
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            let ok = 0, warning = 0, expired = 0;
-            
-            data.forEach(p => {
-                const expDate = new Date(p.exp);
-                expDate.setHours(0, 0, 0, 0);
-                const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-                
-                if (diffDays < 0) expired++;
-                else if (diffDays <= 3) warning++;
-                else ok++;
-            });
-            
-            document.getElementById('totalCount').textContent = data.length;
-            document.getElementById('okCount').textContent = ok;
-            document.getElementById('warningCount').textContent = warning;
-            document.getElementById('expiredCount').textContent = expired;
-            document.getElementById('footerInfo').textContent = `Menampilkan ${data.length} produk`;
-        }
-
-        // ===== FILTER & SEARCH =====
-        function filterTable() {
+        // ============================================================
+        //  FILTER & SEARCH
+        // ============================================================
+        function applyFilters() {
             const search = document.getElementById('searchInput').value.toLowerCase().trim();
             const statusFilter = document.getElementById('filterStatus').value;
             
@@ -451,11 +437,172 @@
                 });
             }
             
-            renderTable(products);
-            updateStats(products);
+            filteredData = products;
+            currentPage = 1;
+            renderTable();
+            updateStats();
+            renderPagination();
         }
 
-        // ===== EXPORT TO EXCEL =====
+        // ============================================================
+        //  RENDER TABLE (dengan pagination)
+        // ============================================================
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageData = filteredData.slice(start, end);
+            
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="fas fa-box-open"></i>
+                                <h3>Belum ada produk</h3>
+                                <p style="font-size: 14px; color: #8a9aaa;">Tambahkan produk melalui halaman Add Produk</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = pageData.map((p, i) => {
+                const realIndex = start + i + 1;
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const expDate = new Date(p.exp);
+                expDate.setHours(0, 0, 0, 0);
+                
+                const diffTime = expDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                let statusClass = 'status-ok';
+                let statusText = '✅ Segar';
+                
+                if (diffDays < 0) {
+                    statusClass = 'status-expired';
+                    statusText = '❌ Expired';
+                } else if (diffDays <= 3) {
+                    statusClass = 'status-warning';
+                    statusText = '⚠️ Segera';
+                }
+                
+                return `
+                    <tr>
+                        <td>${realIndex}</td>
+                        <td><strong>${p.name || '-'}</strong></td>
+                        <td>${p.ean || '-'}</td>
+                        <td>${p.qty || 0}</td>
+                        <td>${p.exp || '-'}</td>
+                        <td>${isNaN(diffDays) ? '-' : diffDays}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ============================================================
+        //  UPDATE STATS
+        // ============================================================
+        function updateStats() {
+            const data = filteredData;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let ok = 0, warning = 0, expired = 0;
+            
+            data.forEach(p => {
+                const expDate = new Date(p.exp);
+                expDate.setHours(0, 0, 0, 0);
+                const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+                
+                if (diffDays < 0) expired++;
+                else if (diffDays <= 3) warning++;
+                else ok++;
+            });
+            
+            document.getElementById('totalCount').textContent = data.length;
+            document.getElementById('okCount').textContent = ok;
+            document.getElementById('warningCount').textContent = warning;
+            document.getElementById('expiredCount').textContent = expired;
+        }
+
+        // ============================================================
+        //  RENDER PAGINATION
+        // ============================================================
+        function renderPagination() {
+            const totalItems = filteredData.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            const container = document.getElementById('paginationButtons');
+            const info = document.getElementById('paginationInfo');
+            
+            if (totalItems === 0) {
+                container.innerHTML = '';
+                info.textContent = 'Menampilkan 0 dari 0 produk';
+                return;
+            }
+            
+            const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+            const end = Math.min(start + ITEMS_PER_PAGE - 1, totalItems);
+            info.textContent = `Menampilkan ${start}-${end} dari ${totalItems} produk`;
+            
+            let buttons = '';
+            
+            // Tombol Previous
+            buttons += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>
+                <i class="fas fa-chevron-left"></i>
+            </button>`;
+            
+            // Tombol halaman
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            
+            // Jika halaman pertama > 1, tampilkan "1..."
+            if (startPage > 1) {
+                buttons += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+                if (startPage > 2) {
+                    buttons += `<button class="pagination-btn" disabled>...</button>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                buttons += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            
+            // Jika halaman terakhir < totalPages, tampilkan "...total"
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    buttons += `<button class="pagination-btn" disabled>...</button>`;
+                }
+                buttons += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+            
+            // Tombol Next
+            buttons += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>
+                <i class="fas fa-chevron-right"></i>
+            </button>`;
+            
+            container.innerHTML = buttons;
+        }
+
+        // ============================================================
+        //  GO TO PAGE
+        // ============================================================
+        function goToPage(page) {
+            const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+            renderPagination();
+            // Scroll ke atas tabel
+            document.querySelector('.table-wrapper').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ============================================================
+        //  EXPORT TO EXCEL
+        // ============================================================
         function exportToExcel() {
             const products = getProducts();
             if (products.length === 0) {
@@ -467,6 +614,7 @@
                 'No': i + 1,
                 'Nama Produk': p.name || '-',
                 'EAN': p.ean || '-',
+                'Brand': p.brand || '-',
                 'Qty': p.qty || 0,
                 'Tanggal Exp': p.exp || '-',
                 'Status': new Date(p.exp) < new Date() ? 'Expired' : 'Active'
@@ -482,14 +630,17 @@
             showToast(`✅ File "${fileName}" berhasil di-download!`);
         }
 
-        // ===== REFRESH DATA =====
+        // ============================================================
+        //  REFRESH DATA
+        // ============================================================
         function refreshData() {
-            renderTable();
-            updateStats();
+            applyFilters();
             showToast('🔄 Data diperbarui');
         }
 
-        // ===== TOAST =====
+        // ============================================================
+        //  TOAST
+        // ============================================================
         function showToast(message) {
             const existing = document.querySelector('.toast');
             if (existing) existing.remove();
@@ -505,15 +656,21 @@
             }, 2500);
         }
 
-        // ===== INIT =====
-        renderTable();
-        updateStats();
+        // ============================================================
+        //  INIT
+        // ============================================================
+        applyFilters();
 
         // Auto refresh setiap 10 detik
         setInterval(() => {
-            const products = getProducts();
-            renderTable(products);
-            updateStats(products);
+            const oldData = JSON.stringify(filteredData);
+            applyFilters();
+            const newData = JSON.stringify(filteredData);
+            if (oldData !== newData) {
+                // Data berubah, refresh tampilan
+                renderTable();
+                renderPagination();
+            }
         }, 10000);
     </script>
 </body>
