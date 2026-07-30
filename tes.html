@@ -2,807 +2,349 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Scan Inventory</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scan Inventory ke Google Sheets</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
+    
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      background: #f5f7fa;
     }
-
-    .container {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border-radius: 24px;
-      padding: 30px 25px;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      animation: slideUp 0.5s ease-out;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .header {
+    
+    h3 {
       text-align: center;
-      margin-bottom: 25px;
-    }
-
-    .header-icon {
-      font-size: 40px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 8px;
-    }
-
-    .header h1 {
-      font-size: 24px;
-      color: #2d3748;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-
-    .header p {
-      font-size: 14px;
-      color: #718096;
-      margin-top: 4px;
-    }
-
-    /* SCANNER BUTTON */
-    .scan-container {
-      position: relative;
+      color: #2c3e50;
       margin-bottom: 20px;
+      font-size: 24px;
     }
-
+    
     #reader {
       width: 100%;
-      border-radius: 16px;
+      max-width: 400px;
+      margin: 0 auto 20px;
+      border-radius: 12px;
       overflow: hidden;
-      background: #000;
-      display: none;
-      margin-bottom: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-
-    #reader.active {
-      display: block;
-    }
-
-    .scan-btn-wrapper {
-      display: flex;
-      justify-content: center;
-    }
-
-    .scan-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 32px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 50px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-      margin: 0 auto;
-    }
-
-    .scan-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
-    }
-
-    .scan-btn:active {
-      transform: scale(0.95);
-    }
-
-    .scan-btn i {
-      font-size: 22px;
-    }
-
-    .scan-btn.scanning {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.02); }
-    }
-
-    .scan-btn .badge {
-      background: rgba(255,255,255,0.2);
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 400;
-    }
-
-    /* FORM */
+    
     .form-group {
-      margin-bottom: 16px;
-    }
-
-    .form-group label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #4a5568;
-      margin-bottom: 6px;
-    }
-
-    .form-group label i {
-      color: #667eea;
-      width: 18px;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 14px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      font-size: 16px;
-      transition: all 0.3s;
-      background: #f7fafc;
-      color: #2d3748;
-      outline: none;
-      -webkit-appearance: none;
-    }
-
-    .form-group input:focus {
-      border-color: #667eea;
+      margin-bottom: 15px;
       background: white;
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-
-    .form-group input::placeholder {
-      color: #a0aec0;
-    }
-
-    .form-group input[type="number"] {
-      -moz-appearance: textfield;
-    }
-
-    .form-group input[type="number"]::-webkit-outer-spin-button,
-    .form-group input[type="number"]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-
-    /* QR Code Result Display */
-    .qr-result {
-      background: #f7fafc;
-      padding: 10px 14px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 8px;
-      border: 2px dashed #e2e8f0;
-    }
-
-    .qr-result i {
-      color: #48bb78;
-      font-size: 18px;
-    }
-
-    .qr-result span {
+    
+    label {
+      display: block;
+      font-weight: 600;
+      color: #34495e;
+      margin-bottom: 5px;
       font-size: 14px;
-      color: #4a5568;
-      flex: 1;
-      word-break: break-all;
     }
-
-    .qr-result .clear-btn {
-      background: none;
-      border: none;
-      color: #fc8181;
-      cursor: pointer;
-      font-size: 18px;
-      padding: 4px;
-      transition: all 0.2s;
-    }
-
-    .qr-result .clear-btn:hover {
-      transform: scale(1.2);
-    }
-
-    .qr-result.hidden {
-      display: none;
-    }
-
-    /* SUBMIT BUTTON */
-    .submit-btn {
+    
+    input {
       width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+    }
+    
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #27ae60;
       color: white;
       border: none;
-      border-radius: 12px;
+      border-radius: 8px;
+      font-weight: bold;
       font-size: 16px;
-      font-weight: 700;
       cursor: pointer;
       transition: all 0.3s;
-      box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
+      margin-top: 10px;
     }
-
-    .submit-btn:hover:not(:disabled) {
+    
+    button:hover:not(:disabled) {
+      background: #219a52;
       transform: translateY(-2px);
-      box-shadow: 0 6px 25px rgba(72, 187, 120, 0.4);
+      box-shadow: 0 4px 12px rgba(39,174,96,0.3);
     }
-
-    .submit-btn:active:not(:disabled) {
-      transform: scale(0.98);
-    }
-
-    .submit-btn:disabled {
-      opacity: 0.7;
+    
+    button:disabled {
+      background: #95a5a6;
       cursor: not-allowed;
-      transform: none;
     }
-
-    .submit-btn i {
-      font-size: 18px;
+    
+    .btn-reset {
+      background: #e74c3c;
+      margin-top: 5px;
     }
-
-    /* STATUS MESSAGE */
+    
+    .btn-reset:hover:not(:disabled) {
+      background: #c0392b;
+    }
+    
     #statusMessage {
-      margin-top: 16px;
-      padding: 12px 16px;
-      border-radius: 12px;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 6px;
       display: none;
-      font-size: 14px;
+      text-align: center;
       font-weight: 500;
-      animation: fadeIn 0.3s ease;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
+    
     #statusMessage.success {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #f0fff4;
-      color: #22543d;
-      border: 1px solid #c6f6d5;
+      display: block;
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
     }
-
+    
     #statusMessage.error {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #fff5f5;
-      color: #9b2c2c;
-      border: 1px solid #fed7d7;
+      display: block;
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
     }
-
+    
     #statusMessage.loading {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #ebf8ff;
-      color: #2a4365;
-      border: 1px solid #bee3f8;
+      display: block;
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
     }
-
-    #statusMessage i {
-      font-size: 18px;
-    }
-
-    /* Responsive */
-    @media (max-width: 480px) {
-      .container {
-        padding: 20px 18px;
-      }
-
-      .header h1 {
-        font-size: 20px;
-      }
-
-      .scan-btn {
-        padding: 14px 24px;
-        font-size: 14px;
-        width: 100%;
-        justify-content: center;
-      }
-
-      .form-group input {
-        padding: 12px 14px;
-        font-size: 15px;
-      }
-
-      .submit-btn {
-        padding: 14px;
-        font-size: 15px;
-      }
-    }
-
-    @media (max-width: 380px) {
-      .container {
-        padding: 16px 14px;
-      }
-
-      .header-icon {
-        font-size: 32px;
-      }
-
-      .scan-btn {
-        padding: 12px 20px;
-        font-size: 13px;
-      }
-
-      .scan-btn i {
-        font-size: 18px;
-      }
-    }
-
-    /* Smooth scroll for mobile */
-    html {
-      scroll-behavior: smooth;
-    }
-
-    /* Touch feedback */
-    .scan-btn, .submit-btn {
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* Dark mode support */
-    @media (prefers-color-scheme: dark) {
-      body {
-        background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-      }
-
-      .container {
-        background: rgba(26, 32, 44, 0.95);
-      }
-
-      .header h1 {
-        color: #e2e8f0;
-      }
-
-      .header p {
-        color: #a0aec0;
-      }
-
-      .form-group label {
-        color: #e2e8f0;
-      }
-
-      .form-group input {
-        background: #2d3748;
-        border-color: #4a5568;
-        color: #e2e8f0;
-      }
-
-      .form-group input:focus {
-        background: #2d3748;
-        border-color: #667eea;
-      }
-
-      .qr-result {
-        background: #2d3748;
-        border-color: #4a5568;
-      }
-
-      .qr-result span {
-        color: #e2e8f0;
-      }
-
-      #statusMessage.success {
-        background: #1a3a2a;
-        color: #9ae6b4;
-        border-color: #276749;
-      }
-
-      #statusMessage.error {
-        background: #3a1a1a;
-        color: #fc8181;
-        border-color: #742a2a;
-      }
-
-      #statusMessage.loading {
-        background: #1a2a3a;
-        color: #63b3ed;
-        border-color: #2a4a6a;
-      }
+    
+    .small-note {
+      font-size: 12px;
+      color: #7f8c8d;
+      margin-top: 5px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
 
-<div class="container">
+  <h3>📦 Scan & Inventory</h3>
   
-  <!-- HEADER -->
-  <div class="header">
-    <div class="header-icon">
-      <i class="fas fa-boxes"></i>
-    </div>
-    <h1>Scan Inventory</h1>
-    <p>Scan barcode untuk input data</p>
-  </div>
+  <!-- Kamera Scanner -->
+  <div id="reader"></div>
 
-  <!-- SCAN BUTTON & READER -->
-  <div class="scan-container">
-    <div id="reader"></div>
-    
-    <div class="scan-btn-wrapper">
-      <button class="scan-btn" id="scanBtn">
-        <i class="fas fa-camera"></i>
-        <span>Scan Barcode</span>
-        <span class="badge">QR/Barcode</span>
-      </button>
-    </div>
-
-    <!-- QR Result Display -->
-    <div class="qr-result hidden" id="qrResult">
-      <i class="fas fa-check-circle"></i>
-      <span id="qrResultText">-</span>
-      <button class="clear-btn" id="clearResultBtn">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-  </div>
-
-  <!-- FORM -->
   <form id="scanForm">
     <div class="form-group">
-      <label for="plu">
-        <i class="fas fa-barcode"></i> PLU / Barcode
-      </label>
-      <input type="text" id="plu" placeholder="Scan atau ketik kode" autocomplete="off" required>
+      <label for="plu">🔖 PLU / Barcode:</label>
+      <input type="text" id="plu" required placeholder="Scan atau masukkan kode" autocomplete="off">
     </div>
 
     <div class="form-group">
-      <label for="qty">
-        <i class="fas fa-cubes"></i> Jumlah (Qty)
-      </label>
+      <label for="qty">📊 Jumlah (Qty):</label>
       <input type="number" id="qty" value="1" min="1" required>
     </div>
 
     <div class="form-group">
-      <label for="exp">
-        <i class="fas fa-calendar-alt"></i> Tanggal Expired
-      </label>
+      <label for="exp">📅 Tanggal Expired:</label>
       <input type="date" id="exp" required>
     </div>
 
-    <button type="submit" class="submit-btn" id="btnSubmit">
-      <i class="fas fa-save"></i>
-      <span>Simpan ke Google Sheets</span>
-    </button>
+    <button type="submit" id="btnSubmit">💾 SIMPAN KE GOOGLE SHEETS</button>
+    <button type="button" id="btnReset" class="btn-reset">🔄 Reset Form</button>
   </form>
 
-  <!-- STATUS -->
   <div id="statusMessage"></div>
+  <p class="small-note">Pastikan koneksi internet aktif. Scan barcode dengan kamera.</p>
 
-</div>
+  <script>
+    // PASTE URL WEB APP APPS SCRIPT KAMU DI SINI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNHtfAJBTCqWf8tkNQc8sT5mNg9VCLchOaZadkGS5Z4bRai5GlfME3myoH6VD38pQQjA/exec";
 
-<script>
-  // ============================================
-  // KONFIGURASI
-  // ============================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNHtfAJBTCqWf8tkNQc8sT5mNg9VCLchOaZadkGS5Z4bRai5GlfME3myoH6VD38pQQjA/exec";
+    // 1. Setup Camera Scan dengan error handling lebih baik
+    const readerElement = document.getElementById("reader");
+    let html5QrcodeScanner = null;
 
-  // ============================================
-  // ELEMEN DOM
-  // ============================================
-  const readerEl = document.getElementById('reader');
-  const scanBtn = document.getElementById('scanBtn');
-  const pluInput = document.getElementById('plu');
-  const qtyInput = document.getElementById('qty');
-  const expInput = document.getElementById('exp');
-  const form = document.getElementById('scanForm');
-  const submitBtn = document.getElementById('btnSubmit');
-  const statusMsg = document.getElementById('statusMessage');
-  const qrResult = document.getElementById('qrResult');
-  const qrResultText = document.getElementById('qrResultText');
-  const clearResultBtn = document.getElementById('clearResultBtn');
+    function onScanSuccess(decodedText, decodedResult) {
+      console.log("Scan berhasil:", decodedText);
+      document.getElementById('plu').value = decodedText;
+      // Beri feedback visual
+      document.getElementById('plu').style.borderColor = '#27ae60';
+      setTimeout(() => {
+        document.getElementById('plu').style.borderColor = '';
+      }, 2000);
+      
+      // Fokus ke qty setelah scan
+      document.getElementById('qty').focus();
+    }
 
-  let scanner = null;
-  let isScanning = false;
+    function onScanError(errorMessage) {
+      // Abaikan error scanning yang biasa terjadi
+      // console.warn("Scan error:", errorMessage);
+    }
 
-  // ============================================
-  // FUNGSI UTILITY
-  // ============================================
-  function showStatus(message, type = 'loading') {
-    statusMsg.innerHTML = '';
-    statusMsg.className = type;
-    
-    const icons = {
-      success: '<i class="fas fa-check-circle"></i>',
-      error: '<i class="fas fa-exclamation-circle"></i>',
-      loading: '<i class="fas fa-spinner fa-spin"></i>'
-    };
-    
-    statusMsg.innerHTML = (icons[type] || '') + ' ' + message;
-    statusMsg.style.display = 'flex';
-  }
+    // Inisialisasi scanner dengan error handling
+    try {
+      html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", 
+        { 
+          fps: 10, 
+          qrbox: { width: 200, height: 200 },
+          aspectRatio: 1.0
+        }
+      );
+      html5QrcodeScanner.render(onScanSuccess, onScanError);
+    } catch (error) {
+      console.error("Gagal inisialisasi kamera:", error);
+      document.getElementById('reader').innerHTML = 
+        '<p style="color: red; padding: 20px; text-align: center;">⚠️ Gagal mengakses kamera. Pastikan izin kamera diberikan.</p>';
+    }
 
-  function hideStatus() {
-    statusMsg.style.display = 'none';
-    statusMsg.className = '';
-  }
+    // 2. Kirim Data ke Google Sheets
+    function showStatus(message, type = 'loading') {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.textContent = message;
+      statusDiv.className = type;
+    }
 
-  function showQRResult(text) {
-    qrResult.classList.remove('hidden');
-    qrResultText.textContent = text;
-  }
+    function hideStatus() {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.style.display = 'none';
+      statusDiv.className = '';
+    }
 
-  function hideQRResult() {
-    qrResult.classList.add('hidden');
-    qrResultText.textContent = '-';
-  }
+    document.getElementById('scanForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Validasi input
+      const plu = document.getElementById('plu').value.trim();
+      const qty = document.getElementById('qty').value.trim();
+      const exp = document.getElementById('exp').value;
 
-  function setDefaultExpiry() {
-    const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + 30);
-    expInput.value = futureDate.toISOString().split('T')[0];
-  }
-
-  // ============================================
-  // SCANNER
-  // ============================================
-  function startScanner() {
-    if (isScanning) return;
-    
-    if (!scanner) {
-      try {
-        scanner = new Html5QrcodeScanner(
-          "reader",
-          {
-            fps: 10,
-            qrbox: { width: 220, height: 220 },
-            aspectRatio: 1.0,
-            formatsToSupport: [
-              Html5QrcodeSupportedFormats.QR_CODE,
-              Html5QrcodeSupportedFormats.CODABAR,
-              Html5QrcodeSupportedFormats.CODE_128,
-              Html5QrcodeSupportedFormats.CODE_39,
-              Html5QrcodeSupportedFormats.EAN_13,
-              Html5QrcodeSupportedFormats.EAN_8,
-              Html5QrcodeSupportedFormats.UPC_A,
-              Html5QrcodeSupportedFormats.UPC_E
-            ]
-          }
-        );
-      } catch (error) {
-        console.error("Gagal inisialisasi scanner:", error);
-        showStatus('⚠️ Gagal mengakses kamera. Izinkan akses kamera.', 'error');
+      if (!plu) {
+        showStatus('⚠️ PLU/Barcode harus diisi!', 'error');
+        document.getElementById('plu').focus();
         return;
       }
-    }
 
-    readerEl.classList.add('active');
-    scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
-    scanBtn.classList.add('scanning');
-    isScanning = true;
-
-    scanner.render(
-      function onSuccess(decodedText) {
-        console.log("Scan berhasil:", decodedText);
-        pluInput.value = decodedText;
-        showQRResult(decodedText);
-        
-        // Feedback visual
-        pluInput.style.borderColor = '#48bb78';
-        setTimeout(() => {
-          pluInput.style.borderColor = '';
-        }, 2000);
-        
-        // Hentikan scanner setelah berhasil
-        stopScanner();
-        
-        // Fokus ke qty
-        setTimeout(() => qtyInput.focus(), 300);
-        
-        // Vibrate (jika support)
-        if (navigator.vibrate) navigator.vibrate(100);
-      },
-      function onError(error) {
-        // Abaikan error scanning
-        // console.warn("Scan error:", error);
+      if (!qty || parseInt(qty) < 1) {
+        showStatus('⚠️ Jumlah minimal 1!', 'error');
+        document.getElementById('qty').focus();
+        return;
       }
-    );
-  }
 
-  function stopScanner() {
-    if (scanner && isScanning) {
-      try {
-        scanner.stop();
-        scanner.clear();
-      } catch (e) {
-        // Abaikan error stop
+      if (!exp) {
+        showStatus('⚠️ Tanggal expired harus diisi!', 'error');
+        document.getElementById('exp').focus();
+        return;
       }
-    }
-    
-    readerEl.classList.remove('active');
-    scanBtn.innerHTML = '<i class="fas fa-camera"></i> Scan Barcode <span class="badge">QR/Barcode</span>';
-    scanBtn.classList.remove('scanning');
-    isScanning = false;
-  }
 
-  // Toggle scanner
-  scanBtn.addEventListener('click', function() {
-    if (isScanning) {
-      stopScanner();
-    } else {
-      startScanner();
-    }
-  });
+      const btn = document.getElementById('btnSubmit');
+      btn.innerText = "⏳ Menyimpan...";
+      btn.disabled = true;
+      hideStatus();
+      showStatus('📤 Mengirim data ke server...', 'loading');
 
-  // Clear result
-  clearResultBtn.addEventListener('click', function() {
-    pluInput.value = '';
-    hideQRResult();
-    pluInput.focus();
-  });
+      const payload = {
+        plu: plu,
+        qty: parseInt(qty),
+        exp: exp
+      };
 
-  // ============================================
-  // FORM HANDLER
-  // ============================================
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const plu = pluInput.value.trim();
-    const qty = qtyInput.value.trim();
-    const exp = expInput.value;
+      console.log("Mengirim data:", payload);
 
-    // Validasi
-    if (!plu) {
-      showStatus('⚠️ PLU/Barcode harus diisi!', 'error');
-      pluInput.focus();
-      return;
-    }
-
-    if (!qty || parseInt(qty) < 1) {
-      showStatus('⚠️ Jumlah minimal 1!', 'error');
-      qtyInput.focus();
-      return;
-    }
-
-    if (!exp) {
-      showStatus('⚠️ Tanggal expired harus diisi!', 'error');
-      expInput.focus();
-      return;
-    }
-
-    // Kirim data
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
-    hideStatus();
-    showStatus('📤 Mengirim data ke server...', 'loading');
-
-    const payload = {
-      plu: plu,
-      qty: parseInt(qty),
-      exp: exp
-    };
-
-    console.log("Mengirim data:", payload);
-
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    })
-    .then(res => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.text();
-    })
-    .then(text => {
-      try {
-        return JSON.parse(text);
-      } catch (e) {
-        throw new Error('Respons tidak valid');
-      }
-    })
-    .then(data => {
-      console.log("Response:", data);
-      if (data.status === "success") {
-        showStatus('✅ ' + (data.message || 'Data berhasil disimpan!'), 'success');
-        
-        // Reset form
-        form.reset();
-        qtyInput.value = '1';
-        hideQRResult();
-        setDefaultExpiry();
-        
-        // Vibrate
-        if (navigator.vibrate) navigator.vibrate(50);
-      } else {
-        showStatus('❌ ' + (data.message || 'Gagal menyimpan data'), 'error');
-      }
-    })
-    .catch(err => {
-      console.error("Error:", err);
-      showStatus('❌ Gagal menyimpan: ' + err.message, 'error');
-    })
-    .finally(() => {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fas fa-save"></i> <span>Simpan ke Google Sheets</span>';
+      // Kirim ke Google Apps Script
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'text/plain;charset=utf-8' 
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.text(); // Pertama dapatkan sebagai text
+      })
+      .then(text => {
+        // Coba parse JSON
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          throw new Error(`Respons tidak valid: ${text.substring(0, 100)}`);
+        }
+      })
+      .then(data => {
+        console.log("Response dari server:", data);
+        if (data.status === "success") {
+          showStatus('✅ ' + data.message + ' Data berhasil disimpan!', 'success');
+          // Reset form setelah sukses
+          document.getElementById('scanForm').reset();
+          document.getElementById('qty').value = '1';
+          // Set tanggal expired ke hari ini + 30 hari (opsional)
+          const futureDate = new Date();
+          futureDate.setDate(futureDate.getDate() + 30);
+          document.getElementById('exp').value = futureDate.toISOString().split('T')[0];
+        } else {
+          showStatus('❌ ' + (data.message || 'Gagal menyimpan data'), 'error');
+        }
+      })
+      .catch(err => {
+        console.error("Error detail:", err);
+        showStatus('❌ Gagal menyimpan data: ' + err.message, 'error');
+      })
+      .finally(() => {
+        btn.innerText = "💾 SIMPAN KE GOOGLE SHEETS";
+        btn.disabled = false;
+      });
     });
-  });
 
-  // ============================================
-  // INIT
-  // ============================================
-  setDefaultExpiry();
-  pluInput.focus();
+    // 3. Reset Form
+    document.getElementById('btnReset').addEventListener('click', function() {
+      if (confirm('Reset form?')) {
+        document.getElementById('scanForm').reset();
+        document.getElementById('qty').value = '1';
+        hideStatus();
+        document.getElementById('plu').focus();
+        // Set tanggal expired ke hari ini + 30 hari
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 30);
+        document.getElementById('exp').value = futureDate.toISOString().split('T')[0];
+      }
+    });
 
-  // Keyboard shortcut: Enter pindah ke field berikutnya
-  pluInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      qtyInput.focus();
-    }
-  });
+    // 4. Set default tanggal expired ke 30 hari dari sekarang
+    const today = new Date();
+    const futureDate = new Date(today);
+    futureDate.setDate(today.getDate() + 30);
+    document.getElementById('exp').value = futureDate.toISOString().split('T')[0];
 
-  qtyInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      expInput.focus();
-    }
-  });
+    // 5. Auto-focus ke PLU
+    document.getElementById('plu').focus();
 
-  expInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      form.dispatchEvent(new Event('submit'));
-    }
-  });
+    // 6. Keyboard shortcut: Enter di PLU pindah ke Qty
+    document.getElementById('plu').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('qty').focus();
+      }
+    });
 
-  // Jika user klik di luar scanner, tutup scanner
-  document.addEventListener('click', function(e) {
-    if (isScanning && !readerEl.contains(e.target) && !scanBtn.contains(e.target)) {
-      stopScanner();
-    }
-  });
-
-  console.log("✅ Aplikasi siap digunakan!");
-  console.log("📌 Script URL:", SCRIPT_URL);
-
-  // Cleanup on page unload
-  window.addEventListener('beforeunload', function() {
-    stopScanner();
-  });
-</script>
-
+    console.log("✅ Aplikasi siap digunakan!");
+    console.log("📌 Script URL:", SCRIPT_URL);
+  </script>
 </body>
 </html>

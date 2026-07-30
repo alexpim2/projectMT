@@ -1,626 +1,567 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expiry Manager</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
         }
-
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(145deg, #f0f4f8, #dce3ed);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 16px;
         }
-
         .container {
-            max-width: 420px;
+            max-width: 480px;
             width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 32px;
-            padding: 28px 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.5s ease-out;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* HEADER */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .header-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 22px;
-        }
-
         .header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2d3748;
-            letter-spacing: -0.5px;
-        }
-
-        .header h1 span {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-size: 26px;
+            background: linear-gradient(135deg, #1a2639, #2b3b5c);
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             background-clip: text;
+            color: transparent;
         }
-
-        .header-badge {
-            background: #edf2f7;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #4a5568;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .header-badge i {
-            color: #48bb78;
-            font-size: 8px;
-        }
-
-        /* STATS CARD - TAMPILKAN 0 */
-        .stats-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            padding: 20px 24px;
-            margin-bottom: 24px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .stats-item {
-            text-align: center;
-            flex: 1;
-        }
-
-        .stats-item .number {
-            font-size: 28px;
-            font-weight: 700;
-            display: block;
-            line-height: 1.2;
-        }
-
-        .stats-item .label {
-            font-size: 12px;
-            opacity: 0.9;
-            font-weight: 500;
-            margin-top: 2px;
-        }
-
-        .stats-divider {
-            width: 1px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* MENU CARDS */
-        .menu-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
         .menu-card {
-            background: white;
-            border-radius: 16px;
-            padding: 16px 20px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 24px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 16px;
-            border: 2px solid #f0f4f8;
+            border: 1px solid rgba(255,255,255,0.7);
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: 0.2s;
             text-decoration: none;
             color: inherit;
-            position: relative;
-            overflow: hidden;
         }
-
-        .menu-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
         .menu-card:active {
             transform: scale(0.97);
         }
-
-        .menu-card:active::before {
-            opacity: 1;
-        }
-
-        .menu-card.add:hover {
-            border-color: #667eea;
-        }
-
-        .menu-card.check:hover {
-            border-color: #48bb78;
-        }
-
-        .menu-card.list:hover {
-            border-color: #ed8936;
-        }
-
         .menu-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            font-size: 24px;
             flex-shrink: 0;
-            transition: all 0.3s;
         }
-
-        .menu-card:hover .menu-icon {
-            transform: scale(1.05);
-        }
-
         .menu-icon.add {
-            background: #ebf4ff;
-            color: #667eea;
+            background: #d1e0ff;
+            color: #1f3a7a;
         }
-
-        .menu-card.add:hover .menu-icon {
-            background: #667eea;
-            color: white;
-        }
-
         .menu-icon.check {
-            background: #f0fff4;
-            color: #48bb78;
+            background: #d4f0e0;
+            color: #0f4a3a;
         }
-
-        .menu-card.check:hover .menu-icon {
-            background: #48bb78;
-            color: white;
-        }
-
         .menu-icon.list {
-            background: #fffbeb;
-            color: #ed8936;
+            background: #fae2d0;
+            color: #7a4a2a;
         }
-
-        .menu-card.list:hover .menu-icon {
-            background: #ed8936;
-            color: white;
+        .menu-icon.export {
+            background: #f0d4f0;
+            color: #6a2a6a;
         }
-
+        .menu-icon.sync {
+            background: #d4e0f0;
+            color: #1a4a7a;
+        }
         .menu-text {
             flex: 1;
         }
-
         .menu-text h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 2px;
+            font-size: 18px;
+            color: #131d33;
         }
-
         .menu-text p {
             font-size: 13px;
-            color: #718096;
+            color: #5a6a8a;
+        }
+        .arrow {
+            color: #7a8aaa;
+        }
+        .stats {
             display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .menu-text p i {
-            font-size: 11px;
-            opacity: 0.7;
-        }
-
-        .menu-arrow {
-            color: #a0aec0;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.4);
+            padding: 12px 16px;
+            border-radius: 20px;
+            margin-top: 16px;
             font-size: 14px;
-            transition: all 0.3s;
+            color: #1a2639;
+            flex-wrap: wrap;
+            gap: 8px;
         }
-
-        .menu-card:hover .menu-arrow {
-            color: #667eea;
-            transform: translateX(4px);
+        .stats .count {
+            background: #1f2b44;
+            color: white;
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-weight: 600;
         }
-
-        /* FOOTER */
         .footer {
             text-align: center;
-            padding-top: 16px;
-            border-top: 2px solid #f0f4f8;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #7a8aaa;
         }
-
-        .footer p {
-            font-size: 13px;
-            color: #a0aec0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .footer i {
-            color: #667eea;
-        }
-
-        .footer .dot {
-            width: 4px;
-            height: 4px;
-            background: #cbd5e0;
-            border-radius: 50%;
-        }
-
-        .footer .status-online {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: #48bb78;
-            font-weight: 500;
-        }
-
-        .footer .status-online i {
-            font-size: 8px;
-            color: #48bb78;
-        }
-
-        /* TOAST */
         .toast {
             position: fixed;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(26, 32, 44, 0.95);
-            backdrop-filter: blur(12px);
+            background: rgba(20,30,50,0.9);
+            backdrop-filter: blur(8px);
             color: white;
-            padding: 14px 28px;
+            padding: 12px 24px;
             border-radius: 60px;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 15px;
             z-index: 999;
             max-width: 90%;
             text-align: center;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            transition: opacity 0.4s;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-
-        .toast.hidden {
-            opacity: 0;
-            transform: translateX(-50%) translateY(20px);
-        }
-
         .toast.success {
-            border-color: #48bb78;
+            border-color: #2a7a4a;
         }
-
         .toast.error {
-            border-color: #fc8181;
+            border-color: #b33a3a;
         }
-
-        .toast.info {
-            border-color: #63b3ed;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 420px) {
-            .container {
-                padding: 20px 16px;
-            }
-
-            .header h1 {
-                font-size: 20px;
-            }
-
-            .header-icon {
-                width: 42px;
-                height: 42px;
-                font-size: 18px;
-            }
-
-            .stats-card {
-                padding: 16px 20px;
-            }
-
-            .stats-item .number {
-                font-size: 24px;
-            }
-
-            .menu-card {
-                padding: 14px 16px;
-            }
-
-            .menu-icon {
-                width: 44px;
-                height: 44px;
-                font-size: 18px;
-            }
-
-            .menu-text h3 {
-                font-size: 15px;
-            }
-
-            .menu-text p {
-                font-size: 12px;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .container {
-                padding: 16px 12px;
-            }
-
-            .stats-item .number {
-                font-size: 20px;
-            }
-
-            .menu-icon {
-                width: 38px;
-                height: 38px;
-                font-size: 16px;
-                border-radius: 10px;
-            }
-        }
-
-        /* DARK MODE SUPPORT */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            }
-
-            .container {
-                background: rgba(26, 32, 44, 0.95);
-            }
-
-            .header h1 {
-                color: #e2e8f0;
-            }
-
-            .header-badge {
-                background: #2d3748;
-                color: #a0aec0;
-            }
-
-            .menu-card {
-                background: #2d3748;
-                border-color: #4a5568;
-            }
-
-            .menu-text h3 {
-                color: #e2e8f0;
-            }
-
-            .menu-text p {
-                color: #a0aec0;
-            }
-
-            .menu-arrow {
-                color: #718096;
-            }
-
-            .footer {
-                border-top-color: #4a5568;
-            }
-
-            .footer p {
-                color: #718096;
-            }
-
-            .menu-icon.add {
-                background: rgba(102, 126, 234, 0.2);
-                color: #8896f5;
-            }
-
-            .menu-icon.check {
-                background: rgba(72, 187, 120, 0.2);
-                color: #68d391;
-            }
-
-            .menu-icon.list {
-                background: rgba(237, 137, 54, 0.2);
-                color: #f6ad55;
-            }
-
-            .menu-card.add:hover .menu-icon {
-                background: #667eea;
-                color: white;
-            }
-
-            .menu-card.check:hover .menu-icon {
-                background: #48bb78;
-                color: white;
-            }
-
-            .menu-card.list:hover .menu-icon {
-                background: #ed8936;
-                color: white;
-            }
+        @media (max-width: 400px) {
+            .container { padding: 16px; }
+            .menu-card { padding: 14px 16px; gap: 12px; }
+            .menu-icon { width: 44px; height: 44px; font-size: 20px; }
+            .menu-text h3 { font-size: 16px; }
+            .menu-text p { font-size: 12px; }
+            .stats { font-size: 13px; padding: 10px 14px; }
         }
     </style>
 </head>
 <body>
-
     <div class="container">
-        
-        <!-- HEADER -->
         <div class="header">
-            <div class="header-left">
-                <div class="header-icon">
-                    <i class="fas fa-box-open"></i>
-                </div>
-                <h1>Expiry<span>Manager</span></h1>
-            </div>
-            <div class="header-badge">
-                <i class="fas fa-circle" style="color: #48bb78; font-size: 8px;"></i>
-                Online
+            <h1><i class="fas fa-box-open"></i> Expiry</h1>
+            <div style="font-size: 20px; color: #1f2b44;">
+                <i class="fas fa-calendar-alt"></i>
             </div>
         </div>
 
-        <!-- STATS - TAMPILKAN 0 -->
-        <div class="stats-card">
-            <div class="stats-item">
-                <span class="number">0</span>
-                <span class="label">Total Produk</span>
+        <!-- ===== ADD PRODUK ===== -->
+        <a href="tes.html" class="menu-card">
+            <div class="menu-icon add"><i class="fas fa-plus-circle"></i></div>
+            <div class="menu-text">
+                <h3>Add Produk Exp</h3>
+                <p><i class="fas fa-barcode"></i> Scan EAN, Qty, Exp</p>
             </div>
-            <div class="stats-divider"></div>
-            <div class="stats-item">
-                <span class="number" style="color: #fbd38d;">0</span>
-                <span class="label">Akan Kadaluarsa</span>
+            <div class="arrow"><i class="fas fa-chevron-right"></i></div>
+        </a>
+
+        <!-- ===== CHECKER ===== -->
+        <div class="menu-card" onclick="checkExpired()">
+            <div class="menu-icon check"><i class="fas fa-search"></i></div>
+            <div class="menu-text">
+                <h3>Checker</h3>
+                <p><i class="fas fa-clipboard"></i> Cek produk kadaluarsa</p>
             </div>
-            <div class="stats-divider"></div>
-            <div class="stats-item">
-                <span class="number" style="color: #fc8181;">0</span>
-                <span class="label">Kadaluarsa</span>
-            </div>
+            <div class="arrow"><i class="fas fa-chevron-right"></i></div>
         </div>
 
-        <!-- MENU -->
-        <div class="menu-grid">
-            <!-- Add Produk - LINK ke halaman tambah produk (master data) -->
-            <a href="tes.html" class="menu-card add">
-                <div class="menu-icon add">
-                    <i class="fas fa-plus-circle"></i>
-                </div>
-                <div class="menu-text">
-                    <h3>Tambah Produk</h3>
-                    <p><i class="fas fa-barcode"></i> Scan barcode & input data</p>
-                </div>
-                <div class="menu-arrow">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
-            </a>
-
-            <!-- Checker - tetap dengan fungsi toast -->
-            <div class="menu-card check" onclick="showToast('📋 Cek produk kadaluarsa', 'info')">
-                <div class="menu-icon check">
-                    <i class="fas fa-search"></i>
-                </div>
-                <div class="menu-text">
-                    <h3>Cek Kadaluarsa</h3>
-                    <p><i class="fas fa-clipboard-check"></i> Cek produk yang expired</p>
-                </div>
-                <div class="menu-arrow">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
+        <!-- ===== MASTER LIST → href ke master.html ===== -->
+        <a href="master.html" class="menu-card">
+            <div class="menu-icon list"><i class="fas fa-archive"></i></div>
+            <div class="menu-text">
+                <h3>Master List Exp</h3>
+                <p><i class="fas fa-table"></i> Lihat semua produk</p>
             </div>
+            <div class="arrow"><i class="fas fa-chevron-right"></i></div>
+        </a>
 
-            <!-- Master List - LINK ke halaman daftar produk (master data) -->
-            <a href="master.html" class="menu-card list">
-                <div class="menu-icon list">
-                    <i class="fas fa-list-ul"></i>
-                </div>
-                <div class="menu-text">
-                    <h3>Daftar Produk</h3>
-                    <p><i class="fas fa-table"></i> Lihat semua produk tersimpan</p>
-                </div>
-                <div class="menu-arrow">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
-            </a>
+        <!-- ===== SYNC MASTER DATA DARI GITHUB ===== -->
+        <div class="menu-card" onclick="syncFromGitHub()">
+            <div class="menu-icon sync"><i class="fas fa-cloud-download-alt"></i></div>
+            <div class="menu-text">
+                <h3>Sync Master Data</h3>
+                <p><i class="fas fa-sync"></i> Ambil dari GitHub</p>
+            </div>
+            <div class="arrow"><i class="fas fa-chevron-right"></i></div>
         </div>
 
-        <!-- FOOTER -->
+        <!-- ===== EXPORT EXCEL ===== -->
+        <div class="menu-card" onclick="exportToExcel()">
+            <div class="menu-icon export"><i class="fas fa-file-excel"></i></div>
+            <div class="menu-text">
+                <h3>Export ke Excel</h3>
+                <p><i class="fas fa-download"></i> Download file .xlsx</p>
+            </div>
+            <div class="arrow"><i class="fas fa-chevron-right"></i></div>
+        </div>
+
+        <!-- ===== STATS ===== -->
+        <div class="stats">
+            <span><i class="fas fa-hourglass-half"></i> <span id="expiringCount">0</span> akan kadaluarsa</span>
+            <span class="count" id="totalCount">0</span>
+        </div>
+
         <div class="footer">
-            <p>
-                <i class="fas fa-database"></i>
-                Data tersimpan di lokal
-                <span class="dot"></span>
-                <span class="status-online">
-                    <i class="fas fa-circle"></i> Online
-                </span>
-            </p>
+            <i class="fas fa-database"></i> Data tersimpan di browser
+            <span style="margin: 0 8px;">|</span>
+            <span id="lastSyncInfo"><i class="far fa-clock"></i> Belum sync</span>
         </div>
-
     </div>
 
+    <!-- ===== LIBRARY ===== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <script>
+        // ============================================================
+        //  DATA
+        // ============================================================
+        function getProducts() {
+            return JSON.parse(localStorage.getItem('products')) || [];
+        }
+
+        function saveProducts(products) {
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
+        // ============================================================
+        //  UPDATE STATS
+        // ============================================================
+        function updateStats() {
+            const products = getProducts();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const expiring = products.filter(p => {
+                const exp = new Date(p.exp);
+                exp.setHours(0, 0, 0, 0);
+                const diff = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+                return diff >= 0 && diff <= 7;
+            });
+            
+            document.getElementById('totalCount').textContent = products.length;
+            document.getElementById('expiringCount').textContent = expiring.length;
+            
+            const lastSync = localStorage.getItem('lastSync');
+            if (lastSync) {
+                document.getElementById('lastSyncInfo').innerHTML = 
+                    `<i class="fas fa-check-circle" style="color:#2a7a4a;"></i> Sync ${new Date(parseInt(lastSync)).toLocaleString('id-ID')}`;
+            } else {
+                document.getElementById('lastSyncInfo').innerHTML = 
+                    `<i class="far fa-clock"></i> Belum sync`;
+            }
+        }
+
+        // ============================================================
+        //  CHECKER
+        // ============================================================
+        function checkExpired() {
+            const products = getProducts();
+            if (products.length === 0) {
+                showToast('📋 Belum ada produk', 'info');
+                return;
+            }
+            
+            const expired = products.filter(p => new Date(p.exp) < new Date());
+            if (expired.length === 0) {
+                showToast('✅ Semua produk masih segar!', 'success');
+            } else {
+                const list = expired.map(p => `• ${p.name} (${p.exp})`).join('\n');
+                alert(`⚠️ ${expired.length} produk kadaluarsa:\n\n${list}`);
+            }
+        }
+
+        // ============================================================
+        //  EXPORT EXCEL
+        // ============================================================
+        function exportToExcel() {
+            const products = getProducts();
+            if (products.length === 0) {
+                showToast('⚠️ Belum ada data untuk di-export!', 'error');
+                return;
+            }
+
+            const data = products.map((p, i) => ({
+                'No': i + 1,
+                'Nama Produk': p.name || '-',
+                'EAN': p.ean || '-',
+                'Brand': p.brand || '-',
+                'Qty': p.qty || 0,
+                'Tanggal Exp': p.exp || '-',
+                'Status': new Date(p.exp) < new Date() ? 'Expired' : 'Active'
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, 'Products');
+
+            const fileName = `products_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            showToast(`✅ File "${fileName}" berhasil di-download!`, 'success');
+        }
+
+        // ============================================================
+        //  SYNC MASTER DATA DARI GITHUB
+        //  Mapping: EAN/PLU → ean, Long Description → name, Brand → brand
+        // ============================================================
+        async function syncFromGitHub() {
+            showToast('⏳ Mengambil data master dari GitHub...', 'info');
+            
+            try {
+                const url = 'https://raw.githubusercontent.com/alexpim2/projectMT/main/masterlist.xlsx';
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                
+                // ===== VALIDASI DATA =====
+                let validData = [];
+                let invalidData = [];
+                let kolomDitemukan = [];
+                
+                if (!jsonData || jsonData.length === 0) {
+                    showToast('⚠️ File masterlist kosong atau tidak valid!', 'error');
+                    return;
+                }
+                
+                // Cek kolom yang tersedia
+                const availableColumns = Object.keys(jsonData[0] || {});
+                console.log('📋 Kolom yang tersedia:', availableColumns);
+                
+                // Cari mapping kolom
+                const colEan = findColumn(availableColumns, ['EAN', 'ean', 'PLU', 'plu', 'Barcode', 'barcode', 'Kode', 'kode']);
+                const colName = findColumn(availableColumns, ['Long Description', 'long description', 'Description', 'description', 'Nama Produk', 'nama', 'Product Name', 'Nama']);
+                const colBrand = findColumn(availableColumns, ['Brand', 'brand', 'Merek', 'merek', 'Merk', 'merk']);
+                
+                kolomDitemukan = [
+                    colEan ? `EAN: "${colEan}"` : 'EAN: tidak ditemukan',
+                    colName ? `Nama: "${colName}"` : 'Nama: tidak ditemukan',
+                    colBrand ? `Brand: "${colBrand}"` : 'Brand: tidak ditemukan'
+                ];
+                
+                console.log('🔍 Mapping kolom:', kolomDitemukan);
+                
+                if (!colEan || !colName) {
+                    let msg = '⚠️ Kolom penting tidak ditemukan!\n\n';
+                    msg += `Kolom yang tersedia:\n${availableColumns.join(', ')}\n\n`;
+                    msg += `Yang dibutuhkan:\n`;
+                    msg += `- EAN / PLU (untuk kode produk)\n`;
+                    msg += `- Long Description / Nama (untuk nama produk)\n`;
+                    msg += `- Brand (opsional, untuk merek)\n\n`;
+                    msg += `Pastikan file Excel memiliki kolom yang sesuai.`;
+                    alert(msg);
+                    showToast('❌ Kolom EAN atau Nama tidak ditemukan!', 'error');
+                    return;
+                }
+                
+                // Mapping data dengan validasi
+                jsonData.forEach((row, index) => {
+                    const ean = String(row[colEan] || '').trim();
+                    const name = String(row[colName] || '').trim();
+                    const brand = colBrand ? String(row[colBrand] || '').trim() : '';
+                    const qty = 1; // Default qty = 1, nanti diisi manual di exp.html
+                    const exp = ''; // Kosong, nanti diisi manual di exp.html
+                    
+                    // Validasi per baris
+                    const errors = [];
+                    if (!ean) errors.push('EAN/PLU kosong');
+                    if (!name) errors.push('Nama kosong');
+                    
+                    if (errors.length === 0) {
+                        validData.push({ ean, name, brand, qty, exp });
+                    } else {
+                        invalidData.push({
+                            row: index + 1,
+                            data: row,
+                            errors: errors
+                        });
+                    }
+                });
+                
+                // ===== TAMPILKAN HASIL VALIDASI =====
+                console.log(`✅ Data valid: ${validData.length}`);
+                console.log(`❌ Data invalid: ${invalidData.length}`);
+                
+                // Tampilkan info kolom
+                let kolomInfo = `📋 Kolom yang terdeteksi:\n`;
+                kolomInfo += `• EAN/PLU: ${colEan || '❌ Tidak ditemukan'}\n`;
+                kolomInfo += `• Nama: ${colName || '❌ Tidak ditemukan'}\n`;
+                kolomInfo += `• Brand: ${colBrand || '⚠️ Tidak ditemukan (opsional)'}\n\n`;
+                
+                if (invalidData.length > 0) {
+                    let invalidMsg = `⚠️ Ditemukan ${invalidData.length} data tidak valid:\n\n`;
+                    invalidData.slice(0, 10).forEach(item => {
+                        invalidMsg += `Baris ${item.row}: ${item.errors.join(', ')}\n`;
+                        // Tampilkan data yang ada
+                        const dataSample = Object.entries(item.data)
+                            .filter(([k, v]) => v)
+                            .map(([k, v]) => `${k}: ${v}`)
+                            .join(', ');
+                        if (dataSample) {
+                            invalidMsg += `  Data: ${dataSample}\n\n`;
+                        }
+                    });
+                    if (invalidData.length > 10) {
+                        invalidMsg += `... dan ${invalidData.length - 10} data lainnya`;
+                    }
+                    alert(kolomInfo + invalidMsg);
+                } else {
+                    alert(kolomInfo + `✅ Semua ${validData.length} data valid!`);
+                }
+                
+                if (validData.length === 0) {
+                    showToast(`❌ Tidak ada data valid! ${invalidData.length} data invalid`, 'error');
+                    return;
+                }
+                
+                // ===== MERGE DENGAN DATA LOKAL =====
+                let localProducts = getProducts();
+                let merged = [...localProducts];
+                let added = 0, updated = 0;
+                
+                validData.forEach(master => {
+                    const existingIndex = merged.findIndex(p => p.ean === master.ean);
+                    if (existingIndex >= 0) {
+                        // Update data master
+                        merged[existingIndex].name = master.name;
+                        merged[existingIndex].brand = master.brand;
+                        // Pertahankan qty dan exp lokal jika ada
+                        if (!merged[existingIndex].qty || merged[existingIndex].qty === 0) {
+                            merged[existingIndex].qty = master.qty;
+                        }
+                        if (!merged[existingIndex].exp) {
+                            merged[existingIndex].exp = master.exp;
+                        }
+                        updated++;
+                    } else {
+                        merged.push(master);
+                        added++;
+                    }
+                });
+                
+                saveProducts(merged);
+                localStorage.setItem('lastSync', Date.now().toString());
+                updateStats();
+                
+                // ===== NOTIFIKASI LENGKAP =====
+                let message = `✅ Sync berhasil!\n\n`;
+                message += `📦 ${validData.length} data valid dari master\n`;
+                message += `🆕 ${added} produk baru ditambahkan\n`;
+                message += `🔄 ${updated} produk diupdate\n`;
+                if (invalidData.length > 0) {
+                    message += `\n⚠️ ${invalidData.length} data tidak valid (cek detail)`;
+                }
+                message += `\n\n📋 Kolom yang digunakan:\n`;
+                message += `• EAN/PLU → ${colEan}\n`;
+                message += `• Nama → ${colName}\n`;
+                message += `• Brand → ${colBrand || '(tidak digunakan)'}`;
+                
+                alert(message);
+                showToast(`✅ Sync berhasil! ${added} baru, ${updated} update`, 'success');
+                
+            } catch (error) {
+                console.error('Sync error:', error);
+                showToast(`❌ Gagal sync: ${error.message}`, 'error');
+            }
+        }
+
+        // ============================================================
+        //  FIND COLUMN (mencari kolom dengan berbagai kemungkinan nama)
+        // ============================================================
+        function findColumn(availableColumns, possibleNames) {
+            for (const name of possibleNames) {
+                const found = availableColumns.find(col => 
+                    col.toLowerCase().trim() === name.toLowerCase().trim()
+                );
+                if (found) return found;
+            }
+            // Coba partial match
+            for (const name of possibleNames) {
+                const found = availableColumns.find(col => 
+                    col.toLowerCase().includes(name.toLowerCase())
+                );
+                if (found) return found;
+            }
+            return null;
+        }
+
+        // ============================================================
+        //  FORMAT TANGGAL
+        // ============================================================
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            
+            let date = new Date(dateStr);
+            if (!isNaN(date.getTime())) {
+                return date.toISOString().split('T')[0];
+            }
+            
+            const parts = String(dateStr).split(/[\/\-.]/);
+            if (parts.length === 3) {
+                let d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
+                
+                d = new Date(`${parts[2]}-${parts[0]}-${parts[1]}`);
+                if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
+            }
+            
+            return '';
+        }
+
         // ============================================================
         //  TOAST NOTIFICATION
         // ============================================================
         function showToast(message, type = 'info') {
             const existing = document.querySelector('.toast');
-            if (existing) {
-                existing.classList.add('hidden');
-                setTimeout(() => existing.remove(), 400);
-            }
+            if (existing) existing.remove();
 
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            
-            const icons = {
-                success: '✅',
-                error: '❌',
-                info: 'ℹ️'
-            };
-            
-            toast.innerHTML = `${icons[type] || 'ℹ️'} ${message}`;
+            toast.textContent = message;
             document.body.appendChild(toast);
-            
+
             setTimeout(() => {
-                toast.classList.add('hidden');
+                toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 400);
-            }, 3500);
+            }, 3000);
         }
 
-        console.log('✅ Expiry Manager siap digunakan!');
-        console.log('📌 Menu "Tambah Produk" → tambah-produk.html');
-        console.log('📌 Menu "Daftar Produk" → daftar-produk.html');
+        // ============================================================
+        //  INIT
+        // ============================================================
+        updateStats();
+        setInterval(updateStats, 10000);
     </script>
 </body>
 </html>
