@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scan Inventory ke Google Sheets</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      background: #f5f7fa;
+    }
+    
+    h3 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+    
+    #reader {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto 20px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    label {
+      display: block;
+      font-weight: 600;
+      color: #34495e;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+    
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+    }
+    
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+    
+    button:hover:not(:disabled) {
+      background: #219a52;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(39,174,96,0.3);
+    }
+    
+    button:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
+    
+    .btn-reset {
+      background: #e74c3c;
+      margin-top: 5px;
+    }
+    
+    .btn-reset:hover:not(:disabled) {
+      background: #c0392b;
+    }
+    
+    #statusMessage {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 6px;
+      display: none;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    #statusMessage.success {
+      display: block;
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    #statusMessage.error {
+      display: block;
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    #statusMessage.loading {
+      display: block;
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    
+    .small-note {
+      font-size: 12px;
+      color: #7f8c8d;
+      margin-top: 5px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h3>📦 Scan & Inventory</h3>
+  
+  <!-- Kamera Scanner -->
+  <div id="reader"></div>
+
+  <form id="scanForm">
+    <div class="form-group">
+      <label for="plu">🔖 PLU / Barcode:</label>
+      <input type="text" id="plu" required placeholder="Scan atau masukkan kode" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label for="qty">📊 Jumlah (Qty):</label>
+      <input type="number" id="qty" value="1" min="1" required>
+    </div>
+
+    <div class="form-group">
+      <label for="exp">📅 Tanggal Expired:</label>
+      <input type="date" id="exp" required>
+    </div>
+
+    <button type="submit" id="btnSubmit">💾 SIMPAN KE GOOGLE SHEETS</button>
+    <button type="button" id="btnReset" class="btn-reset">🔄 Reset Form</button>
+  </form>
+
+  <div id="statusMessage"></div>
+  <p class="small-note">Pastikan koneksi internet aktif. Scan barcode dengan kamera.</p>
+
+  <script>
+    // PASTE URL WEB APP APPS SCRIPT KAMU DI SINI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNHtfAJBTCqWf8tkNQc8sT5mNg9VCLchOaZadkGS5Z4bRai5GlfME3myoH6VD38pQQjA/exec";
+
+    // 1. Setup Camera Scan dengan error handling lebih baik
+    const readerElement = document.getElementById("reader");
+    let html5QrcodeScanner = null;
+
+    function onScanSuccess(decodedText, decodedResult) {
+      console.log("Scan berhasil:", decodedText);
+      document.getElementById('plu').value = decodedText;
+      // Beri feedback visual
+      document.getElementById('plu').style.borderColor = '#27ae60';
+      setTimeout(() => {
+        document.getElementById('plu').style.borderColor = '';
+      }, 2000);
+      
+      // Fokus ke qty setelah scan
+      document.getElementById('qty').focus();
+    }
+
+    function onScanError(errorMessage) {
+      // Abaikan error scanning yang biasa terjadi
+      // console.warn("Scan error:", errorMessage);
+    }
+
+    // Inisialisasi scanner dengan error handling
+    try {
+      html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", 
+        { 
+          fps: 10, 
+          qrbox: { width: 200, height: 200 },
+          aspectRatio: 1.0
+        }
+      );
+      html5QrcodeScanner.render(onScanSuccess, onScanError);
+    } catch (error) {
+      console.error("Gagal inisialisasi kamera:", error);
+      document.getElementById('reader').innerHTML = 
+        '<p style="color: red; padding: 20px; text-align: center;">⚠️ Gagal mengakses kamera. Pastikan izin kamera diberikan.</p>';
+    }
+
+    // 2. Kirim Data ke Google Sheets
+    function showStatus(message, type = 'loading') {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.textContent = message;
+      statusDiv.className = type;
+    }
+
+    function hideStatus() {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.style.display = 'none';
+      statusDiv.className = '';
+    }
+
+    document.getElementById('scanForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Validasi input
+      const plu = document.getElementById('plu').value.trim();
+      const qty = document.getElementById('qty').value.trim();
+      const exp = document.getElementById('exp').value;
+
+      if (!plu) {
+        showStatus('⚠️ PLU/Barcode harus diisi!', 'error');
+        document.getElementById('plu').focus();
+        return;
+      }
+
+      if (!qty || parseInt(qty) < 1) {
+        showStatus('⚠️ Jumlah minimal 1!', 'error');
+        document.getElementById('qty').focus();
+        return;
+      }
+
+      if (!exp) {
+        showStatus('⚠️ Tanggal expired harus diisi!', 'error');
+        document.getElementById('exp').focus();
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmit');
+      btn.innerText = "⏳ Menyimpan...";
+      btn.disabled = true;
+      hideStatus();
+      showStatus('📤 Mengirim data ke server...', 'loading');
+
+      const payload = {
+        plu: plu,
+        qty: parseInt(qty),
+        exp: exp
+      };
+
+      console.log("Mengirim data:", payload);
+
+      // Kirim ke Google Apps Script
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'text/plain;charset=utf-8' 
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.text(); // Pertama dapatkan sebagai text
+      })
+      .then(text => {
+        // Coba parse JSON
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          throw new Error(`Respons tidak valid: ${text.substring(0, 100)}`);
+        }
+      })
+      .then(data => {
+        console.log("Response dari server:", data);
+        if (data.status === "success") {
+          showStatus('✅ ' + data.message + ' Data berhasil disimpan!', 'success');
+          // Reset form setelah sukses
+          document.getElementById('scanForm').reset();
+          document.getElementById('qty').value = '1';
+          // Set tanggal expired ke hari ini + 30 hari (opsional)
+          const futureDate = new Date();
+          futureDate.setDate(futureDate.getDate() + 30);
+          document.getElementById('exp').value = futureDate.toISOString().split('T')[0];
+        } else {
+          showStatus('❌ ' + (data.message || 'Gagal menyimpan data'), 'error');
+        }
+      })
+      .catch(err => {
+        console.error("Error detail:", err);
+        showStatus('❌ Gagal menyimpan data: ' + err.message, 'error');
+      })
+      .finally(() => {
+        btn.innerText = "💾 SIMPAN KE GOOGLE SHEETS";
+        btn.disabled = false;
+      });
+    });
+
+    // 3. Reset Form
+    document.getElementById('btnReset').addEventListener('click', function() {
+      if (confirm('Reset form?')) {
+        document.getElementById('scanForm').reset();
+        document.getElementById('qty').value = '1';
+        hideStatus();
+        document.getElementById('plu').focus();
+        // Set tanggal expired ke hari ini + 30 hari
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 30);
+        document.getElementById('exp').value = futureDate.toISOString().split('T')[0];
+      }
+    });
+
+    // 4. Set default tanggal expired ke 30 hari dari sekarang
+    const today = new Date();
+    const futureDate = new Date(today);
+    futureDate.setDate(today.getDate() + 30);
+    document.getElementById('exp').value = futureDate.toISOString().split('T')[0];
+
+    // 5. Auto-focus ke PLU
+    document.getElementById('plu').focus();
+
+    // 6. Keyboard shortcut: Enter di PLU pindah ke Qty
+    document.getElementById('plu').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('qty').focus();
+      }
+    });
+
+    console.log("✅ Aplikasi siap digunakan!");
+    console.log("📌 Script URL:", SCRIPT_URL);
+  </script>
+</body>
+</html>
