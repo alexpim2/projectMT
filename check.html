@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checker Produk & Exp Reminder</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #f4f7fc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .card {
+      max-width: 1100px;
+      width: 100%;
+      background: white;
+      border-radius: 32px;
+      box-shadow: 0 20px 40px -12px rgba(0,20,40,0.25);
+      padding: 28px 30px 40px;
+      transition: all 0.2s;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: #0b2b4a;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+    .subhead {
+      color: #4a5e75;
+      font-size: 15px;
+      border-left: 4px solid #2b7be4;
+      padding-left: 16px;
+      margin-bottom: 28px;
+      font-weight: 450;
+      background: #f0f5fe;
+      border-radius: 0 20px 20px 0;
+      line-height: 1.5;
+      padding: 12px 18px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      gap: 15px;
+    }
+    .badge-status {
+      background: #eef3f9;
+      border-radius: 40px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1e3b5c;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .badge-status span {
+      background: #2b7be4;
+      color: white;
+      border-radius: 30px;
+      padding: 0 12px;
+      font-weight: 600;
+      font-size: 13px;
+      line-height: 24px;
+    }
+    .btn-refresh {
+      background: white;
+      border: 1px solid #d0ddee;
+      padding: 8px 20px;
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 14px;
+      color: #1a324b;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-refresh:hover {
+      background: #f0f6ff;
+      border-color: #2b7be4;
+      box-shadow: 0 4px 8px rgba(43, 123, 228, 0.08);
+    }
+    .btn-refresh:active {
+      transform: scale(0.96);
+    }
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 20px;
+      border: 1px solid #e7edf6;
+      background: #ffffff;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14.5px;
+      min-width: 520px;
+    }
+    th {
+      text-align: left;
+      padding: 16px 16px 14px 16px;
+      background: #f8faff;
+      color: #1c3d62;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #dce5f0;
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #eef3fa;
+      color: #1f334a;
+      vertical-align: middle;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background-color: #fafcff;
+    }
+    .plu-code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-weight: 500;
+      color: #0b2b4a;
+      letter-spacing: 0.2px;
+    }
+    .qty-badge {
+      background: #e4ebf5;
+      border-radius: 30px;
+      padding: 2px 14px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #1f3f60;
+      display: inline-block;
+    }
+    .exp-date {
+      font-weight: 500;
+      background: #f2f6fd;
+      padding: 3px 12px;
+      border-radius: 30px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .reminder-badge {
+      background: #fef1e6;
+      color: #b3512a;
+      font-weight: 600;
+      font-size: 12px;
+      padding: 4px 14px;
+      border-radius: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid #ffdcc9;
+      white-space: nowrap;
+    }
+    .reminder-badge::before {
+      content: "⏳";
+      font-size: 14px;
+      line-height: 1;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: #5f738c;
+    }
+    .empty-state p {
+      margin-top: 8px;
+      font-size: 15px;
+    }
+    .footer-note {
+      display: flex;
+      justify-content: flex-end;
+      font-size: 13px;
+      color: #5a7290;
+      background: #f8faff;
+      padding: 12px 20px;
+      border-radius: 60px;
+      margin-top: 8px;
+      border: 1px solid #e7edf6;
+    }
+    .footer-note i {
+      font-style: normal;
+      background: #dce5f0;
+      padding: 0 10px;
+      border-radius: 30px;
+      color: #1a324b;
+      margin-left: 6px;
+      font-weight: 500;
+    }
+    .loading-text {
+      color: #3f5b7a;
+      padding: 16px 0;
+    }
+    .status-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      padding: 12px 18px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+    .status-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      padding: 12px 18px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>📦 Checker Produk</h1>
+  <div class="subhead">
+    ⏰ Reminder otomatis jika EXP kurang dari 2 bulan dari hari ini
+  </div>
+
+  <div id="statusMessage"></div>
+
+  <div class="toolbar">
+    <div class="badge-status">
+      📋 Data produk <span id="productCount">0</span>
+    </div>
+    <button class="btn-refresh" id="refreshBtn">
+      <span>⟳</span> Segarkan
+    </button>
+  </div>
+
+  <div class="table-wrapper" id="tableWrapper">
+    <table id="productTable">
+      <thead>
+        <tr>
+          <th>PLU</th>
+          <th>Deskripsi</th>
+          <th style="text-align: center;">Qty</th>
+          <th>Exp</th>
+          <th style="min-width: 110px;">Reminder</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr>
+          <td colspan="5" class="empty-state">
+            <div style="font-size: 28px; margin-bottom: 6px;">📡</div>
+            <p style="font-weight: 450;">Memuat data dari spreadsheet...</p>
+            <p style="font-size: 13px; color: #6f89a5;">pastikan koneksi internet aktif</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+
+<script>
+  (function() {
+    // ===== KONFIGURASI =====
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLQuCXT_mYTu2hV7_EtTpu3_cGiIn9d_sOVuM8NSgtjeFjDNsywVA7gZWlqsjBXSn6xA/exec";
+
+    // DOM references
+    const tableBody = document.getElementById('tableBody');
+    const productCountSpan = document.getElementById('productCount');
+    const statusMessage = document.getElementById('statusMessage');
+
+    function showStatus(message, type = 'loading') {
+      statusMessage.textContent = message;
+      statusMessage.className = type;
+      statusMessage.style.display = 'block';
+    }
+
+    function hideStatus() {
+      statusMessage.style.display = 'none';
+      statusMessage.className = '';
+    }
+
+    // helper: format date to string (YYYY-MM-DD)
+    function formatDate(date) {
+      if (!(date instanceof Date) || isNaN(date)) return 'Invalid Date';
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    // parse date from various formats (YYYY-MM-DD or DD-MM-YYYY or MM/DD/YYYY)
+    function parseExpDate(expStr) {
+      if (!expStr) return null;
+      let cleaned = expStr.trim();
+      // if already YYYY-MM-DD
+      let match = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (match) {
+        const [_, y, m, d] = match;
+        return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+      }
+      // DD-MM-YYYY atau DD/MM/YYYY
+      match = cleaned.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+      if (match) {
+        const [_, d, m, y] = match;
+        return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+      }
+      // MM/DD/YYYY
+      match = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (match) {
+        const [_, m, d, y] = match;
+        return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+      }
+      // fallback: try native
+      const d = new Date(cleaned);
+      return isNaN(d) ? null : d;
+    }
+
+    // check if exp <= 2 months from today (60 days)
+    function isExpiringSoon(expDate) {
+      if (!expDate) return false;
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const exp = new Date(expDate);
+      exp.setHours(0,0,0,0);
+      const diffTime = exp.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays <= 60;
+    }
+
+    // Render table rows from data array
+    function renderData(dataArray) {
+      if (!Array.isArray(dataArray) || dataArray.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty-state">
+              <div style="font-size: 28px; margin-bottom: 6px;">📭</div>
+              <p style="font-weight: 450;">Tidak ada produk ditemukan</p>
+              <p style="font-size: 13px; color: #6f89a5;">periksa kembali data di spreadsheet</p>
+            </td>
+          </tr>
+        `;
+        productCountSpan.textContent = '0';
+        return;
+      }
+
+      let rowsHtml = '';
+      let validCount = 0;
+
+      dataArray.forEach((item, index) => {
+        // Ambil field dengan case insensitive
+        const plu = item.PLU || item.plu || item['PLU'] || '-';
+        const deskripsi = item.Deskripsi || item.deskripsi || item['Deskripsi'] || '-';
+        const qtyRaw = item.Qty || item.qty || item['Qty'] || 0;
+        const qty = parseInt(qtyRaw) || 0;
+        const expRaw = item.Exp || item.exp || item['Exp'] || '';
+
+        // Parse exp date
+        const expDate = parseExpDate(expRaw);
+        const expDisplay = expDate ? formatDate(expDate) : (expRaw || '-');
+        const expDateObj = expDate;
+
+        // Reminder: jika expDate valid dan <= 2 bulan dari sekarang
+        let reminderHtml = '';
+        if (expDateObj && isExpiringSoon(expDateObj)) {
+          reminderHtml = `<span class="reminder-badge">⚠️ EXP ≤ 2 bulan</span>`;
+        } else {
+          reminderHtml = `<span style="color: #6f8aa8; font-size: 13px;">—</span>`;
+        }
+
+        const qtyDisplay = `<span class="qty-badge">${qty}</span>`;
+
+        rowsHtml += `
+          <tr>
+            <td class="plu-code">${plu}</td>
+            <td>${deskripsi}</td>
+            <td style="text-align: center;">${qtyDisplay}</td>
+            <td><span class="exp-date">${expDisplay}</span></td>
+            <td>${reminderHtml}</td>
+          </tr>
+        `;
+        validCount++;
+      });
+
+      tableBody.innerHTML = rowsHtml;
+      productCountSpan.textContent = validCount;
+    }
+
+    // Fetch data from Google Apps Script - menggunakan pendekatan yang sama dengan contoh yang berhasil
+    async function fetchData() {
+      // Show loading state
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="5" class="empty-state">
+            <div style="font-size: 28px; margin-bottom: 6px;">⏳</div>
+            <p style="font-weight: 450;">Memuat data ...</p>
+            <p style="font-size: 13px; color: #6f89a5;">harap tunggu</p>
+          </td>
+        </tr>
+      `;
+      productCountSpan.textContent = '...';
+      hideStatus();
+
+      try {
+        showStatus('📤 Mengambil data dari server...', 'loading');
+
+        const response = await fetch(SCRIPT_URL, {
+          method: 'GET',
+          headers: { 
+            'Content-Type': 'text/plain;charset=utf-8' 
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Pertama dapatkan sebagai text (seperti contoh yang berhasil)
+        const text = await response.text();
+        console.log('Response text:', text);
+
+        // Coba parse JSON
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error(`Respons tidak valid: ${text.substring(0, 100)}`);
+        }
+
+        console.log('Data dari spreadsheet:', data);
+
+        // Jika data berbentuk array, render langsung
+        let products = [];
+        if (Array.isArray(data)) {
+          products = data;
+        } else if (data && typeof data === 'object') {
+          // coba cari array di dalam object
+          if (Array.isArray(data.data)) products = data.data;
+          else if (Array.isArray(data.records)) products = data.records;
+          else if (Array.isArray(data.items)) products = data.items;
+          else if (Array.isArray(data.products)) products = data.products;
+          else {
+            // jika tidak ada array, coba konversi values object menjadi array
+            const values = Object.values(data);
+            if (values.length > 0 && Array.isArray(values[0])) {
+              products = values[0];
+            } else {
+              // fallback: masukkan object itu sendiri sebagai satu item?
+              products = [];
+            }
+          }
+        }
+
+        // pastikan products adalah array
+        if (!Array.isArray(products)) products = [];
+
+        if (products.length === 0) {
+          showStatus('📭 Tidak ada data produk ditemukan di spreadsheet', 'success');
+        } else {
+          showStatus(`✅ Berhasil memuat ${products.length} produk`, 'success');
+        }
+
+        renderData(products);
+      } catch (err) {
+        console.error('Gagal fetch data:', err);
+        showStatus(`❌ Gagal memuat data: ${err.message}`, 'error');
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty-state" style="color: #b34a4a;">
+              <div style="font-size: 28px; margin-bottom: 6px;">⚠️</div>
+              <p style="font-weight: 500;">Gagal memuat data</p>
+              <p style="font-size: 13px; color: #7f5f5f;">${err.message || 'cek koneksi atau CORS'}</p>
+              <p style="font-size: 13px; margin-top: 10px; background: #f4f0f0; padding: 6px 14px; border-radius: 30px; display: inline-block;">🔁 klik Segarkan untuk coba lagi</p>
+            </td>
+          </tr>
+        `;
+        productCountSpan.textContent = '0';
+      }
+    }
+
+    // event listener refresh
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+      fetchData();
+    });
+
+    // initial load
+    fetchData();
+
+    // auto refresh setiap 5 menit
+    setInterval(() => {
+      fetchData();
+    }, 300000);
+
+  })();
+</script>
+
+</body>
+</html>
