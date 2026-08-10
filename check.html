@@ -58,6 +58,12 @@
       margin-bottom: 28px;
       gap: 15px;
     }
+    .toolbar-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 15px;
+    }
     .badge-status {
       background: #eef3f9;
       border-radius: 40px;
@@ -102,12 +108,74 @@
     .btn-refresh:active {
       transform: scale(0.96);
     }
+    
+    /* Search Bar Styles */
+    .search-container {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+      max-width: 350px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 9px 16px 9px 40px;
+      border: 1px solid #d0ddee;
+      border-radius: 40px;
+      font-size: 14px;
+      background: white;
+      transition: all 0.2s;
+      outline: none;
+      color: #1f334a;
+    }
+    .search-input:focus {
+      border-color: #2b7be4;
+      box-shadow: 0 0 0 3px rgba(43, 123, 228, 0.1);
+    }
+    .search-input::placeholder {
+      color: #8aa0b9;
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8aa0b9;
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #8aa0b9;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0 4px;
+      display: none;
+      transition: 0.15s;
+    }
+    .search-clear:hover {
+      color: #1f334a;
+    }
+    .search-clear.visible {
+      display: block;
+    }
+    .search-count {
+      font-size: 13px;
+      color: #5a7290;
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+
     .table-wrapper {
       overflow-x: auto;
       border-radius: 20px;
       border: 1px solid #e7edf6;
       background: #ffffff;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
     }
     table {
@@ -189,6 +257,97 @@
       margin-top: 8px;
       font-size: 15px;
     }
+    
+    /* Pagination Styles */
+    .pagination-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: #f8faff;
+      border-radius: 16px;
+      border: 1px solid #e7edf6;
+      margin-top: 8px;
+      gap: 12px;
+    }
+    .pagination-info {
+      font-size: 14px;
+      color: #4a5e75;
+    }
+    .pagination-info strong {
+      color: #0b2b4a;
+      font-weight: 600;
+    }
+    .pagination-controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .page-btn {
+      background: white;
+      border: 1px solid #d0ddee;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a324b;
+      cursor: pointer;
+      transition: all 0.15s;
+      min-width: 36px;
+      text-align: center;
+    }
+    .page-btn:hover:not(:disabled):not(.active) {
+      background: #f0f6ff;
+      border-color: #2b7be4;
+    }
+    .page-btn.active {
+      background: #2b7be4;
+      border-color: #2b7be4;
+      color: white;
+      cursor: default;
+    }
+    .page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .page-btn-arrow {
+      font-size: 16px;
+      padding: 6px 12px;
+    }
+    .page-btn-numbers {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .page-ellipsis {
+      padding: 6px 4px;
+      color: #5a7290;
+      font-size: 14px;
+    }
+    .page-size-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #4a5e75;
+    }
+    .page-size-selector select {
+      padding: 6px 10px;
+      border: 1px solid #d0ddee;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      color: #1a324b;
+      cursor: pointer;
+      outline: none;
+    }
+    .page-size-selector select:focus {
+      border-color: #2b7be4;
+      box-shadow: 0 0 0 3px rgba(43, 123, 228, 0.1);
+    }
+
     .footer-note {
       display: flex;
       justify-content: flex-end;
@@ -229,6 +388,11 @@
       border-radius: 10px;
       margin-bottom: 15px;
     }
+    .highlight {
+      background: #fef3c7;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
   </style>
 </head>
 <body>
@@ -241,12 +405,26 @@
   <div id="statusMessage"></div>
 
   <div class="toolbar">
-    <div class="badge-status">
-      📋 Data produk <span id="productCount">0</span>
+    <div class="toolbar-left">
+      <div class="badge-status">
+        📋 Data produk <span id="productCount">0</span>
+      </div>
+      <button class="btn-refresh" id="refreshBtn">
+        <span>⟳</span> Segarkan
+      </button>
     </div>
-    <button class="btn-refresh" id="refreshBtn">
-      <span>⟳</span> Segarkan
-    </button>
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input 
+        type="text" 
+        class="search-input" 
+        id="searchInput" 
+        placeholder="Cari PLU atau deskripsi..."
+        autocomplete="off"
+      >
+      <button class="search-clear" id="searchClear" aria-label="Hapus pencarian">✕</button>
+      <span class="search-count" id="searchCount"></span>
+    </div>
   </div>
 
   <div class="table-wrapper" id="tableWrapper">
@@ -272,7 +450,32 @@
     </table>
   </div>
 
-  
+  <!-- Pagination -->
+  <div class="pagination-container" id="paginationContainer">
+    <div class="pagination-info">
+      Menampilkan <strong id="startItem">0</strong> - <strong id="endItem">0</strong> 
+      dari <strong id="totalItems">0</strong> produk
+    </div>
+    <div class="pagination-controls">
+      <button class="page-btn page-btn-arrow" id="prevPage" disabled>‹</button>
+      <div class="page-btn-numbers" id="pageNumbers"></div>
+      <button class="page-btn page-btn-arrow" id="nextPage" disabled>›</button>
+    </div>
+    <div class="page-size-selector">
+      <label for="pageSize">Tampil:</label>
+      <select id="pageSize">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    <span>🔄 Auto refresh setiap 5 menit</span>
+  </div>
 
 <script>
   (function() {
@@ -283,6 +486,24 @@
     const tableBody = document.getElementById('tableBody');
     const productCountSpan = document.getElementById('productCount');
     const statusMessage = document.getElementById('statusMessage');
+    const searchInput = document.getElementById('searchInput');
+    const searchClear = document.getElementById('searchClear');
+    const searchCount = document.getElementById('searchCount');
+    
+    // Pagination DOM
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const pageNumbersDiv = document.getElementById('pageNumbers');
+    const startItemSpan = document.getElementById('startItem');
+    const endItemSpan = document.getElementById('endItem');
+    const totalItemsSpan = document.getElementById('totalItems');
+    const pageSizeSelect = document.getElementById('pageSize');
+
+    // Data store
+    let allProducts = [];
+    let filteredProducts = [];
+    let currentPage = 1;
+    let pageSize = 10;
 
     function showStatus(message, type = 'loading') {
       statusMessage.textContent = message;
@@ -304,29 +525,25 @@
       return `${y}-${m}-${d}`;
     }
 
-    // parse date from various formats (YYYY-MM-DD or DD-MM-YYYY or MM/DD/YYYY)
+    // parse date from various formats
     function parseExpDate(expStr) {
       if (!expStr) return null;
       let cleaned = expStr.trim();
-      // if already YYYY-MM-DD
       let match = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
       if (match) {
         const [_, y, m, d] = match;
         return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
       }
-      // DD-MM-YYYY atau DD/MM/YYYY
       match = cleaned.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
       if (match) {
         const [_, d, m, y] = match;
         return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
       }
-      // MM/DD/YYYY
       match = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
       if (match) {
         const [_, m, d, y] = match;
         return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
       }
-      // fallback: try native
       const d = new Date(cleaned);
       return isNaN(d) ? null : d;
     }
@@ -343,39 +560,82 @@
       return diffDays <= 60;
     }
 
-    // Render table rows from data array
-    function renderData(dataArray) {
-      if (!Array.isArray(dataArray) || dataArray.length === 0) {
+    // Highlight matching text
+    function highlightText(text, searchTerm) {
+      if (!searchTerm || !text) return text;
+      const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<span class="highlight">$1</span>');
+    }
+
+    // Render table rows with pagination
+    function renderData(dataArray, searchTerm = '') {
+      // Filter data if search term exists
+      let displayData = dataArray;
+      let searchCountText = '';
+      
+      if (searchTerm && searchTerm.trim() !== '') {
+        const term = searchTerm.trim().toLowerCase();
+        displayData = dataArray.filter(item => {
+          const plu = String(item.PLU || item.plu || item['PLU'] || '').toLowerCase();
+          const deskripsi = String(item.Deskripsi || item.deskripsi || item['Deskripsi'] || '').toLowerCase();
+          return plu.includes(term) || deskripsi.includes(term);
+        });
+        
+        searchCountText = `(${displayData.length} dari ${dataArray.length})`;
+      }
+      
+      searchCount.textContent = searchCountText;
+      filteredProducts = displayData;
+      
+      // Update total items for pagination
+      const totalItems = displayData.length;
+      totalItemsSpan.textContent = totalItems;
+      
+      // Calculate pagination
+      const totalPages = Math.ceil(totalItems / pageSize) || 1;
+      if (currentPage > totalPages) currentPage = totalPages;
+      
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, totalItems);
+      const pageItems = displayData.slice(startIndex, endIndex);
+      
+      // Update info
+      startItemSpan.textContent = totalItems === 0 ? 0 : startIndex + 1;
+      endItemSpan.textContent = endIndex;
+      
+      // Update pagination buttons
+      updatePaginationButtons(totalPages);
+      
+      // Render table rows
+      if (totalItems === 0) {
+        const message = dataArray.length === 0 ? 
+          'Tidak ada produk ditemukan' : 
+          `Tidak ada produk yang cocok dengan "${searchTerm}"`;
         tableBody.innerHTML = `
           <tr>
             <td colspan="5" class="empty-state">
-              <div style="font-size: 28px; margin-bottom: 6px;">📭</div>
-              <p style="font-weight: 450;">Tidak ada produk ditemukan</p>
-              <p style="font-size: 13px; color: #6f89a5;">periksa kembali data di spreadsheet</p>
+              <div style="font-size: 28px; margin-bottom: 6px;">${dataArray.length === 0 ? '📭' : '🔍'}</div>
+              <p style="font-weight: 450;">${message}</p>
+              <p style="font-size: 13px; color: #6f89a5;">${dataArray.length === 0 ? 'periksa kembali data di spreadsheet' : 'coba kata kunci lain'}</p>
             </td>
           </tr>
         `;
-        productCountSpan.textContent = '0';
+        productCountSpan.textContent = dataArray.length;
         return;
       }
 
       let rowsHtml = '';
-      let validCount = 0;
-
-      dataArray.forEach((item, index) => {
-        // Ambil field dengan case insensitive
+      pageItems.forEach((item) => {
         const plu = item.PLU || item.plu || item['PLU'] || '-';
         const deskripsi = item.Deskripsi || item.deskripsi || item['Deskripsi'] || '-';
         const qtyRaw = item.Qty || item.qty || item['Qty'] || 0;
         const qty = parseInt(qtyRaw) || 0;
         const expRaw = item.Exp || item.exp || item['Exp'] || '';
 
-        // Parse exp date
         const expDate = parseExpDate(expRaw);
         const expDisplay = expDate ? formatDate(expDate) : (expRaw || '-');
         const expDateObj = expDate;
 
-        // Reminder: jika expDate valid dan <= 2 bulan dari sekarang
         let reminderHtml = '';
         if (expDateObj && isExpiringSoon(expDateObj)) {
           reminderHtml = `<span class="reminder-badge">⚠️ EXP ≤ 2 bulan</span>`;
@@ -383,25 +643,77 @@
           reminderHtml = `<span style="color: #6f8aa8; font-size: 13px;">—</span>`;
         }
 
+        const displayPlu = searchTerm ? highlightText(plu, searchTerm) : plu;
+        const displayDeskripsi = searchTerm ? highlightText(deskripsi, searchTerm) : deskripsi;
         const qtyDisplay = `<span class="qty-badge">${qty}</span>`;
 
         rowsHtml += `
           <tr>
-            <td class="plu-code">${plu}</td>
-            <td>${deskripsi}</td>
+            <td class="plu-code">${displayPlu}</td>
+            <td>${displayDeskripsi}</td>
             <td style="text-align: center;">${qtyDisplay}</td>
             <td><span class="exp-date">${expDisplay}</span></td>
             <td>${reminderHtml}</td>
           </tr>
         `;
-        validCount++;
       });
 
       tableBody.innerHTML = rowsHtml;
-      productCountSpan.textContent = validCount;
+      productCountSpan.textContent = dataArray.length;
     }
 
-    // Fetch data from Google Apps Script - menggunakan pendekatan yang sama dengan contoh yang berhasil
+    // Update pagination buttons
+    function updatePaginationButtons(totalPages) {
+      const current = currentPage;
+      
+      // Prev/Next buttons
+      prevPageBtn.disabled = current === 1;
+      nextPageBtn.disabled = current === totalPages || totalPages === 0;
+      
+      // Generate page numbers
+      let html = '';
+      const maxVisible = 5;
+      let startPage = Math.max(1, current - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+      
+      if (endPage - startPage < maxVisible - 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+      
+      if (startPage > 1) {
+        html += `<button class="page-btn" data-page="1">1</button>`;
+        if (startPage > 2) {
+          html += `<span class="page-ellipsis">…</span>`;
+        }
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        html += `<button class="page-btn ${i === current ? 'active' : ''}" data-page="${i}">${i}</button>`;
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          html += `<span class="page-ellipsis">…</span>`;
+        }
+        html += `<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
+      }
+      
+      pageNumbersDiv.innerHTML = html;
+      
+      // Add click listeners to page buttons
+      document.querySelectorAll('.page-btn[data-page]').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const page = parseInt(this.dataset.page);
+          if (page !== currentPage) {
+            currentPage = page;
+            const searchTerm = searchInput.value.trim();
+            renderData(allProducts, searchTerm);
+          }
+        });
+      });
+    }
+
+    // Fetch data from Google Apps Script
     async function fetchData() {
       // Show loading state
       tableBody.innerHTML = `
@@ -430,11 +742,9 @@
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Pertama dapatkan sebagai text (seperti contoh yang berhasil)
         const text = await response.text();
         console.log('Response text:', text);
 
-        // Coba parse JSON
         let data;
         try {
           data = JSON.parse(text);
@@ -444,30 +754,27 @@
 
         console.log('Data dari spreadsheet:', data);
 
-        // Jika data berbentuk array, render langsung
         let products = [];
         if (Array.isArray(data)) {
           products = data;
         } else if (data && typeof data === 'object') {
-          // coba cari array di dalam object
           if (Array.isArray(data.data)) products = data.data;
           else if (Array.isArray(data.records)) products = data.records;
           else if (Array.isArray(data.items)) products = data.items;
           else if (Array.isArray(data.products)) products = data.products;
           else {
-            // jika tidak ada array, coba konversi values object menjadi array
             const values = Object.values(data);
             if (values.length > 0 && Array.isArray(values[0])) {
               products = values[0];
             } else {
-              // fallback: masukkan object itu sendiri sebagai satu item?
               products = [];
             }
           }
         }
 
-        // pastikan products adalah array
         if (!Array.isArray(products)) products = [];
+
+        allProducts = products;
 
         if (products.length === 0) {
           showStatus('📭 Tidak ada data produk ditemukan di spreadsheet', 'success');
@@ -475,7 +782,13 @@
           showStatus(`✅ Berhasil memuat ${products.length} produk`, 'success');
         }
 
-        renderData(products);
+        // Reset to first page
+        currentPage = 1;
+        
+        const searchTerm = searchInput.value.trim();
+        renderData(products, searchTerm);
+        updateClearButton();
+        
       } catch (err) {
         console.error('Gagal fetch data:', err);
         showStatus(`❌ Gagal memuat data: ${err.message}`, 'error');
@@ -490,13 +803,74 @@
           </tr>
         `;
         productCountSpan.textContent = '0';
+        allProducts = [];
+        totalItemsSpan.textContent = '0';
+        startItemSpan.textContent = '0';
+        endItemSpan.textContent = '0';
+        pageNumbersDiv.innerHTML = '';
+        prevPageBtn.disabled = true;
+        nextPageBtn.disabled = true;
       }
     }
 
-    // event listener refresh
-    document.getElementById('refreshBtn').addEventListener('click', function() {
-      fetchData();
+    // Update clear button visibility
+    function updateClearButton() {
+      if (searchInput.value.trim() !== '') {
+        searchClear.classList.add('visible');
+      } else {
+        searchClear.classList.remove('visible');
+      }
+    }
+
+    // Search handler
+    function handleSearch() {
+      const searchTerm = searchInput.value.trim();
+      currentPage = 1; // Reset to first page on search
+      renderData(allProducts, searchTerm);
+      updateClearButton();
+    }
+
+    // Clear search
+    function clearSearch() {
+      searchInput.value = '';
+      currentPage = 1;
+      renderData(allProducts, '');
+      updateClearButton();
+      searchInput.focus();
+    }
+
+    // Page size change handler
+    function handlePageSizeChange() {
+      pageSize = parseInt(pageSizeSelect.value);
+      currentPage = 1;
+      const searchTerm = searchInput.value.trim();
+      renderData(allProducts, searchTerm);
+    }
+
+    // Page navigation
+    function goToPage(delta) {
+      const totalPages = Math.ceil(filteredProducts.length / pageSize) || 1;
+      const newPage = currentPage + delta;
+      if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        const searchTerm = searchInput.value.trim();
+        renderData(allProducts, searchTerm);
+      }
+    }
+
+    // Event listeners
+    document.getElementById('refreshBtn').addEventListener('click', fetchData);
+    searchInput.addEventListener('input', handleSearch);
+    searchClear.addEventListener('click', clearSearch);
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        clearSearch();
+      }
     });
+    
+    prevPageBtn.addEventListener('click', () => goToPage(-1));
+    nextPageBtn.addEventListener('click', () => goToPage(1));
+    pageSizeSelect.addEventListener('change', handlePageSizeChange);
 
     // initial load
     fetchData();
