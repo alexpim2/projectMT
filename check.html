@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>Checker Produk & Exp Reminder</title>
   <style>
     * {
@@ -11,114 +11,153 @@
       margin: 0;
       padding: 0;
     }
+    
     body {
       background: #f4f7fc;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 100vh;
-      padding: 20px;
+      padding: 12px;
+      padding-bottom: 30px;
     }
+    
     .card {
       max-width: 1100px;
       width: 100%;
       background: white;
-      border-radius: 32px;
-      box-shadow: 0 20px 40px -12px rgba(0,20,40,0.25);
-      padding: 28px 30px 40px;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px -10px rgba(0,20,40,0.2);
+      padding: 16px 14px 24px;
       transition: all 0.2s;
     }
+    
     h1 {
-      font-size: 26px;
+      font-size: 22px;
       font-weight: 600;
       color: #0b2b4a;
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 8px;
+      gap: 10px;
+      margin-bottom: 6px;
       letter-spacing: -0.3px;
     }
+    
     .subhead {
       color: #4a5e75;
-      font-size: 15px;
+      font-size: 13px;
       border-left: 4px solid #2b7be4;
-      padding-left: 16px;
-      margin-bottom: 28px;
+      padding-left: 14px;
+      margin-bottom: 18px;
       font-weight: 450;
       background: #f0f5fe;
-      border-radius: 0 20px 20px 0;
-      line-height: 1.5;
-      padding: 12px 18px;
+      border-radius: 0 16px 16px 0;
+      line-height: 1.4;
+      padding: 10px 14px;
     }
+    
+    /* Status Message */
+    #statusMessage {
+      padding: 10px 14px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      display: none;
+    }
+    .status-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .status-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status-loading {
+      background: #cce5ff;
+      color: #004085;
+      border: 1px solid #b8daff;
+    }
+    
+    /* Toolbar Mobile */
     .toolbar {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 28px;
-      gap: 15px;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
     }
+    
+    .toolbar-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    
     .toolbar-left {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 15px;
+      gap: 8px;
     }
+    
     .badge-status {
       background: #eef3f9;
       border-radius: 40px;
-      padding: 8px 20px;
-      font-size: 14px;
+      padding: 6px 14px;
+      font-size: 12px;
       font-weight: 500;
       color: #1e3b5c;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+      white-space: nowrap;
     }
+    
     .badge-status span {
       background: #2b7be4;
       color: white;
       border-radius: 30px;
-      padding: 0 12px;
+      padding: 0 10px;
       font-weight: 600;
-      font-size: 13px;
-      line-height: 24px;
+      font-size: 12px;
+      line-height: 22px;
     }
+    
     .btn-refresh {
       background: white;
       border: 1px solid #d0ddee;
-      padding: 8px 20px;
+      padding: 6px 16px;
       border-radius: 40px;
       font-weight: 500;
-      font-size: 14px;
+      font-size: 12px;
       color: #1a324b;
       cursor: pointer;
       transition: 0.15s;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-    }
-    .btn-refresh:hover {
-      background: #f0f6ff;
-      border-color: #2b7be4;
-      box-shadow: 0 4px 8px rgba(43, 123, 228, 0.08);
-    }
-    .btn-refresh:active {
-      transform: scale(0.96);
+      gap: 6px;
+      white-space: nowrap;
+      touch-action: manipulation;
     }
     
-    /* Search Bar Styles */
+    .btn-refresh:active {
+      transform: scale(0.95);
+      background: #f0f6ff;
+    }
+    
+    /* Search Bar Mobile */
     .search-container {
       position: relative;
-      flex: 1;
-      min-width: 200px;
-      max-width: 350px;
+      width: 100%;
     }
+    
     .search-input {
       width: 100%;
-      padding: 9px 16px 9px 40px;
+      padding: 10px 40px 10px 38px;
       border: 1px solid #d0ddee;
       border-radius: 40px;
       font-size: 14px;
@@ -126,23 +165,30 @@
       transition: all 0.2s;
       outline: none;
       color: #1f334a;
+      -webkit-appearance: none;
+      appearance: none;
     }
+    
     .search-input:focus {
       border-color: #2b7be4;
       box-shadow: 0 0 0 3px rgba(43, 123, 228, 0.1);
     }
+    
     .search-input::placeholder {
       color: #8aa0b9;
+      font-size: 13px;
     }
+    
     .search-icon {
       position: absolute;
       left: 14px;
       top: 50%;
       transform: translateY(-50%);
       color: #8aa0b9;
-      font-size: 16px;
+      font-size: 15px;
       pointer-events: none;
     }
+    
     .search-clear {
       position: absolute;
       right: 12px;
@@ -155,243 +201,423 @@
       font-size: 18px;
       padding: 0 4px;
       display: none;
-      transition: 0.15s;
+      touch-action: manipulation;
     }
-    .search-clear:hover {
-      color: #1f334a;
-    }
+    
     .search-clear.visible {
       display: block;
     }
+    
     .search-count {
-      font-size: 13px;
-      color: #5a7290;
-      margin-left: 8px;
-      white-space: nowrap;
+      display: none;
     }
-
+    
+    /* Table Mobile */
     .table-wrapper {
       overflow-x: auto;
-      border-radius: 20px;
+      border-radius: 16px;
       border: 1px solid #e7edf6;
       background: #ffffff;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+      -webkit-overflow-scrolling: touch;
     }
+    
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14.5px;
-      min-width: 520px;
+      font-size: 12px;
+      min-width: 420px;
     }
+    
     th {
       text-align: left;
-      padding: 16px 16px 14px 16px;
+      padding: 10px 10px 8px 10px;
       background: #f8faff;
       color: #1c3d62;
       font-weight: 600;
-      font-size: 13px;
-      letter-spacing: 0.4px;
+      font-size: 11px;
+      letter-spacing: 0.3px;
       text-transform: uppercase;
       border-bottom: 1px solid #dce5f0;
+      position: sticky;
+      top: 0;
+      z-index: 5;
     }
+    
     td {
-      padding: 14px 16px;
+      padding: 10px 10px;
       border-bottom: 1px solid #eef3fa;
       color: #1f334a;
       vertical-align: middle;
+      font-size: 12px;
     }
+    
     tr:last-child td {
       border-bottom: none;
     }
-    tr:hover td {
-      background-color: #fafcff;
+    
+    tr:active td {
+      background-color: #f0f6ff;
     }
+    
     .plu-code {
       font-family: 'SF Mono', 'Fira Code', monospace;
       font-weight: 500;
       color: #0b2b4a;
+      font-size: 11px;
       letter-spacing: 0.2px;
+      word-break: break-word;
     }
+    
     .qty-badge {
       background: #e4ebf5;
       border-radius: 30px;
-      padding: 2px 14px;
+      padding: 2px 10px;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 11px;
       color: #1f3f60;
       display: inline-block;
+      text-align: center;
+      min-width: 30px;
     }
+    
     .exp-date {
       font-weight: 500;
       background: #f2f6fd;
-      padding: 3px 12px;
+      padding: 2px 10px;
       border-radius: 30px;
-      font-size: 13px;
+      font-size: 11px;
       white-space: nowrap;
+      display: inline-block;
     }
+    
     .reminder-badge {
       background: #fef1e6;
       color: #b3512a;
       font-weight: 600;
-      font-size: 12px;
-      padding: 4px 14px;
+      font-size: 10px;
+      padding: 3px 10px;
       border-radius: 30px;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       border: 1px solid #ffdcc9;
       white-space: nowrap;
     }
+    
     .reminder-badge::before {
       content: "⏳";
-      font-size: 14px;
+      font-size: 12px;
       line-height: 1;
     }
+    
     .empty-state {
       text-align: center;
-      padding: 48px 20px;
+      padding: 32px 16px;
       color: #5f738c;
     }
+    
     .empty-state p {
-      margin-top: 8px;
-      font-size: 15px;
+      margin-top: 6px;
+      font-size: 13px;
     }
     
-    /* Pagination Styles */
+    .empty-state .empty-icon {
+      font-size: 36px;
+      margin-bottom: 4px;
+    }
+    
+    .highlight {
+      background: #fef3c7;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+    
+    /* Pagination Mobile */
     .pagination-container {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 14px;
       background: #f8faff;
-      border-radius: 16px;
+      border-radius: 14px;
       border: 1px solid #e7edf6;
-      margin-top: 8px;
-      gap: 12px;
+      margin-top: 4px;
     }
+    
     .pagination-info {
-      font-size: 14px;
+      font-size: 12px;
       color: #4a5e75;
+      text-align: center;
     }
+    
     .pagination-info strong {
       color: #0b2b4a;
       font-weight: 600;
     }
+    
     .pagination-controls {
       display: flex;
-      gap: 6px;
+      gap: 4px;
       align-items: center;
+      justify-content: center;
       flex-wrap: wrap;
     }
+    
     .page-btn {
       background: white;
       border: 1px solid #d0ddee;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
       color: #1a324b;
       cursor: pointer;
       transition: all 0.15s;
-      min-width: 36px;
+      min-width: 32px;
       text-align: center;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
-    .page-btn:hover:not(:disabled):not(.active) {
-      background: #f0f6ff;
-      border-color: #2b7be4;
+    
+    .page-btn:active {
+      transform: scale(0.92);
     }
+    
+    .page-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
     .page-btn.active {
       background: #2b7be4;
       border-color: #2b7be4;
       color: white;
       cursor: default;
     }
-    .page-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
+    
     .page-btn-arrow {
       font-size: 16px;
-      padding: 6px 12px;
+      padding: 6px 10px;
     }
+    
     .page-btn-numbers {
       display: flex;
-      gap: 4px;
+      gap: 3px;
       flex-wrap: wrap;
+      justify-content: center;
     }
+    
     .page-ellipsis {
       padding: 6px 4px;
       color: #5a7290;
-      font-size: 14px;
+      font-size: 13px;
     }
+    
+    .pagination-bottom {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding-top: 6px;
+      border-top: 1px solid #e7edf6;
+    }
+    
     .page-size-selector {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 14px;
+      gap: 6px;
+      font-size: 12px;
       color: #4a5e75;
     }
+    
     .page-size-selector select {
-      padding: 6px 10px;
+      padding: 4px 8px;
       border: 1px solid #d0ddee;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 12px;
       background: white;
       color: #1a324b;
       cursor: pointer;
       outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      padding-right: 24px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5e75' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
     }
+    
     .page-size-selector select:focus {
       border-color: #2b7be4;
-      box-shadow: 0 0 0 3px rgba(43, 123, 228, 0.1);
+      box-shadow: 0 0 0 2px rgba(43, 123, 228, 0.1);
     }
-
+    
     .footer-note {
       display: flex;
-      justify-content: flex-end;
-      font-size: 13px;
+      justify-content: center;
+      font-size: 11px;
       color: #5a7290;
       background: #f8faff;
-      padding: 12px 20px;
-      border-radius: 60px;
-      margin-top: 8px;
+      padding: 10px 16px;
+      border-radius: 40px;
+      margin-top: 6px;
       border: 1px solid #e7edf6;
     }
-    .footer-note i {
-      font-style: normal;
-      background: #dce5f0;
-      padding: 0 10px;
-      border-radius: 30px;
-      color: #1a324b;
-      margin-left: 6px;
-      font-weight: 500;
-    }
+    
+    /* Loading state */
     .loading-text {
       color: #3f5b7a;
       padding: 16px 0;
     }
-    .status-error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-      padding: 12px 18px;
-      border-radius: 10px;
-      margin-bottom: 15px;
+    
+    /* Responsive Breakpoints */
+    @media (min-width: 600px) {
+      body {
+        padding: 20px;
+        align-items: center;
+      }
+      
+      .card {
+        padding: 28px 30px 36px;
+      }
+      
+      .toolbar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .toolbar-top {
+        flex: 1;
+      }
+      
+      .search-container {
+        width: auto;
+        flex: 1;
+        min-width: 200px;
+        max-width: 350px;
+      }
+      
+      .search-count {
+        display: inline;
+      }
+      
+      h1 {
+        font-size: 26px;
+      }
+      
+      .subhead {
+        font-size: 15px;
+        padding: 12px 18px;
+      }
+      
+      table {
+        font-size: 14px;
+        min-width: 520px;
+      }
+      
+      th {
+        padding: 16px 16px 14px 16px;
+        font-size: 13px;
+      }
+      
+      td {
+        padding: 14px 16px;
+        font-size: 14px;
+      }
+      
+      .plu-code {
+        font-size: 13px;
+      }
+      
+      .pagination-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 20px;
+      }
+      
+      .pagination-info {
+        text-align: left;
+        font-size: 14px;
+      }
+      
+      .pagination-bottom {
+        border-top: none;
+        padding-top: 0;
+      }
+      
+      .page-size-selector {
+        font-size: 14px;
+      }
+      
+      .footer-note {
+        justify-content: flex-end;
+        font-size: 13px;
+      }
     }
-    .status-success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-      padding: 12px 18px;
-      border-radius: 10px;
-      margin-bottom: 15px;
+    
+    @media (max-width: 380px) {
+      .badge-status {
+        font-size: 10px;
+        padding: 4px 10px;
+      }
+      
+      .badge-status span {
+        font-size: 10px;
+        line-height: 18px;
+        padding: 0 8px;
+      }
+      
+      .btn-refresh {
+        font-size: 10px;
+        padding: 4px 12px;
+      }
+      
+      .page-btn {
+        font-size: 11px;
+        padding: 4px 8px;
+        min-width: 28px;
+      }
+      
+      .reminder-badge {
+        font-size: 9px;
+        padding: 2px 8px;
+      }
+      
+      .reminder-badge::before {
+        font-size: 10px;
+      }
     }
-    .highlight {
-      background: #fef3c7;
-      padding: 0 2px;
-      border-radius: 2px;
+    
+    /* Touch-friendly */
+    .page-btn, .btn-refresh, .search-clear, .search-input {
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Scrollbar styling */
+    .table-wrapper::-webkit-scrollbar {
+      height: 4px;
+    }
+    
+    .table-wrapper::-webkit-scrollbar-track {
+      background: #f0f4fa;
+      border-radius: 10px;
+    }
+    
+    .table-wrapper::-webkit-scrollbar-thumb {
+      background: #c0d0e0;
+      border-radius: 10px;
+    }
+    
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+      background: #a0b0c0;
     }
   </style>
 </head>
@@ -399,19 +625,21 @@
 <div class="card">
   <h1>📦 Checker Produk</h1>
   <div class="subhead">
-    ⏰ Reminder otomatis jika EXP kurang dari 2 bulan dari hari ini
+    ⏰ Reminder otomatis jika EXP kurang dari 2 bulan
   </div>
 
   <div id="statusMessage"></div>
 
   <div class="toolbar">
-    <div class="toolbar-left">
-      <div class="badge-status">
-        📋 Data produk <span id="productCount">0</span>
+    <div class="toolbar-top">
+      <div class="toolbar-left">
+        <div class="badge-status">
+          📋 <span id="productCount">0</span>
+        </div>
+        <button class="btn-refresh" id="refreshBtn">
+          ⟳ Segarkan
+        </button>
       </div>
-      <button class="btn-refresh" id="refreshBtn">
-        <span>⟳</span> Segarkan
-      </button>
     </div>
     <div class="search-container">
       <span class="search-icon">🔍</span>
@@ -421,6 +649,7 @@
         id="searchInput" 
         placeholder="Cari PLU atau deskripsi..."
         autocomplete="off"
+        inputmode="search"
       >
       <button class="search-clear" id="searchClear" aria-label="Hapus pencarian">✕</button>
       <span class="search-count" id="searchCount"></span>
@@ -433,17 +662,17 @@
         <tr>
           <th>PLU</th>
           <th>Deskripsi</th>
-          <th style="text-align: center;">Qty</th>
-          <th>Exp</th>
-          <th style="min-width: 110px;">Reminder</th>
+          <th style="text-align: center; min-width: 50px;">Qty</th>
+          <th style="min-width: 80px;">Exp</th>
+          <th style="min-width: 90px;">Reminder</th>
         </tr>
       </thead>
       <tbody id="tableBody">
         <tr>
           <td colspan="5" class="empty-state">
-            <div style="font-size: 28px; margin-bottom: 6px;">📡</div>
-            <p style="font-weight: 450;">Memuat data dari spreadsheet...</p>
-            <p style="font-size: 13px; color: #6f89a5;">pastikan koneksi internet aktif</p>
+            <div class="empty-icon">📡</div>
+            <p style="font-weight: 450;">Memuat data...</p>
+            <p style="font-size: 12px; color: #6f89a5;">pastikan koneksi internet aktif</p>
           </td>
         </tr>
       </tbody>
@@ -453,28 +682,29 @@
   <!-- Pagination -->
   <div class="pagination-container" id="paginationContainer">
     <div class="pagination-info">
-      Menampilkan <strong id="startItem">0</strong> - <strong id="endItem">0</strong> 
-      dari <strong id="totalItems">0</strong> produk
+      <span id="startItem">0</span> - <span id="endItem">0</span> 
+      dari <strong id="totalItems">0</strong>
     </div>
     <div class="pagination-controls">
       <button class="page-btn page-btn-arrow" id="prevPage" disabled>‹</button>
       <div class="page-btn-numbers" id="pageNumbers"></div>
       <button class="page-btn page-btn-arrow" id="nextPage" disabled>›</button>
     </div>
-    <div class="page-size-selector">
-      <label for="pageSize">Tampil:</label>
-      <select id="pageSize">
-        <option value="5">5</option>
-        <option value="10" selected>10</option>
-        <option value="20">20</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-      </select>
+    <div class="pagination-bottom">
+      <div class="page-size-selector">
+        <label for="pageSize">Tampil:</label>
+        <select id="pageSize">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </div>
     </div>
   </div>
 
   <div class="footer-note">
-    <span>🔄 Auto refresh setiap 5 menit</span>
+    <span>🔄 Auto refresh 5 menit</span>
   </div>
 
 <script>
@@ -516,7 +746,6 @@
       statusMessage.className = '';
     }
 
-    // helper: format date to string (YYYY-MM-DD)
     function formatDate(date) {
       if (!(date instanceof Date) || isNaN(date)) return 'Invalid Date';
       const y = date.getFullYear();
@@ -525,7 +754,6 @@
       return `${y}-${m}-${d}`;
     }
 
-    // parse date from various formats
     function parseExpDate(expStr) {
       if (!expStr) return null;
       let cleaned = expStr.trim();
@@ -548,7 +776,6 @@
       return isNaN(d) ? null : d;
     }
 
-    // check if exp <= 2 months from today (60 days)
     function isExpiringSoon(expDate) {
       if (!expDate) return false;
       const today = new Date();
@@ -560,16 +787,13 @@
       return diffDays <= 60;
     }
 
-    // Highlight matching text
     function highlightText(text, searchTerm) {
       if (!searchTerm || !text) return text;
       const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
       return text.replace(regex, '<span class="highlight">$1</span>');
     }
 
-    // Render table rows with pagination
     function renderData(dataArray, searchTerm = '') {
-      // Filter data if search term exists
       let displayData = dataArray;
       let searchCountText = '';
       
@@ -580,18 +804,15 @@
           const deskripsi = String(item.Deskripsi || item.deskripsi || item['Deskripsi'] || '').toLowerCase();
           return plu.includes(term) || deskripsi.includes(term);
         });
-        
         searchCountText = `(${displayData.length} dari ${dataArray.length})`;
       }
       
       searchCount.textContent = searchCountText;
       filteredProducts = displayData;
       
-      // Update total items for pagination
       const totalItems = displayData.length;
       totalItemsSpan.textContent = totalItems;
       
-      // Calculate pagination
       const totalPages = Math.ceil(totalItems / pageSize) || 1;
       if (currentPage > totalPages) currentPage = totalPages;
       
@@ -599,14 +820,11 @@
       const endIndex = Math.min(startIndex + pageSize, totalItems);
       const pageItems = displayData.slice(startIndex, endIndex);
       
-      // Update info
       startItemSpan.textContent = totalItems === 0 ? 0 : startIndex + 1;
       endItemSpan.textContent = endIndex;
       
-      // Update pagination buttons
       updatePaginationButtons(totalPages);
       
-      // Render table rows
       if (totalItems === 0) {
         const message = dataArray.length === 0 ? 
           'Tidak ada produk ditemukan' : 
@@ -614,9 +832,9 @@
         tableBody.innerHTML = `
           <tr>
             <td colspan="5" class="empty-state">
-              <div style="font-size: 28px; margin-bottom: 6px;">${dataArray.length === 0 ? '📭' : '🔍'}</div>
+              <div class="empty-icon">${dataArray.length === 0 ? '📭' : '🔍'}</div>
               <p style="font-weight: 450;">${message}</p>
-              <p style="font-size: 13px; color: #6f89a5;">${dataArray.length === 0 ? 'periksa kembali data di spreadsheet' : 'coba kata kunci lain'}</p>
+              <p style="font-size: 12px; color: #6f89a5;">${dataArray.length === 0 ? 'periksa kembali data di spreadsheet' : 'coba kata kunci lain'}</p>
             </td>
           </tr>
         `;
@@ -638,9 +856,9 @@
 
         let reminderHtml = '';
         if (expDateObj && isExpiringSoon(expDateObj)) {
-          reminderHtml = `<span class="reminder-badge">⚠️ EXP ≤ 2 bulan</span>`;
+          reminderHtml = `<span class="reminder-badge">⚠️ EXP ≤ 2 bln</span>`;
         } else {
-          reminderHtml = `<span style="color: #6f8aa8; font-size: 13px;">—</span>`;
+          reminderHtml = `<span style="color: #6f8aa8; font-size: 11px;">—</span>`;
         }
 
         const displayPlu = searchTerm ? highlightText(plu, searchTerm) : plu;
@@ -662,15 +880,12 @@
       productCountSpan.textContent = dataArray.length;
     }
 
-    // Update pagination buttons
     function updatePaginationButtons(totalPages) {
       const current = currentPage;
       
-      // Prev/Next buttons
       prevPageBtn.disabled = current === 1;
       nextPageBtn.disabled = current === totalPages || totalPages === 0;
       
-      // Generate page numbers
       let html = '';
       const maxVisible = 5;
       let startPage = Math.max(1, current - Math.floor(maxVisible / 2));
@@ -700,7 +915,6 @@
       
       pageNumbersDiv.innerHTML = html;
       
-      // Add click listeners to page buttons
       document.querySelectorAll('.page-btn[data-page]').forEach(btn => {
         btn.addEventListener('click', function() {
           const page = parseInt(this.dataset.page);
@@ -713,15 +927,13 @@
       });
     }
 
-    // Fetch data from Google Apps Script
     async function fetchData() {
-      // Show loading state
       tableBody.innerHTML = `
         <tr>
           <td colspan="5" class="empty-state">
-            <div style="font-size: 28px; margin-bottom: 6px;">⏳</div>
+            <div class="empty-icon">⏳</div>
             <p style="font-weight: 450;">Memuat data ...</p>
-            <p style="font-size: 13px; color: #6f89a5;">harap tunggu</p>
+            <p style="font-size: 12px; color: #6f89a5;">harap tunggu</p>
           </td>
         </tr>
       `;
@@ -782,9 +994,7 @@
           showStatus(`✅ Berhasil memuat ${products.length} produk`, 'success');
         }
 
-        // Reset to first page
         currentPage = 1;
-        
         const searchTerm = searchInput.value.trim();
         renderData(products, searchTerm);
         updateClearButton();
@@ -795,10 +1005,10 @@
         tableBody.innerHTML = `
           <tr>
             <td colspan="5" class="empty-state" style="color: #b34a4a;">
-              <div style="font-size: 28px; margin-bottom: 6px;">⚠️</div>
+              <div class="empty-icon">⚠️</div>
               <p style="font-weight: 500;">Gagal memuat data</p>
-              <p style="font-size: 13px; color: #7f5f5f;">${err.message || 'cek koneksi atau CORS'}</p>
-              <p style="font-size: 13px; margin-top: 10px; background: #f4f0f0; padding: 6px 14px; border-radius: 30px; display: inline-block;">🔁 klik Segarkan untuk coba lagi</p>
+              <p style="font-size: 12px; color: #7f5f5f;">${err.message || 'cek koneksi atau CORS'}</p>
+              <p style="font-size: 12px; margin-top: 8px; background: #f4f0f0; padding: 4px 12px; border-radius: 30px; display: inline-block;">⟳ klik Segarkan</p>
             </td>
           </tr>
         `;
@@ -813,7 +1023,6 @@
       }
     }
 
-    // Update clear button visibility
     function updateClearButton() {
       if (searchInput.value.trim() !== '') {
         searchClear.classList.add('visible');
@@ -822,15 +1031,13 @@
       }
     }
 
-    // Search handler
     function handleSearch() {
       const searchTerm = searchInput.value.trim();
-      currentPage = 1; // Reset to first page on search
+      currentPage = 1;
       renderData(allProducts, searchTerm);
       updateClearButton();
     }
 
-    // Clear search
     function clearSearch() {
       searchInput.value = '';
       currentPage = 1;
@@ -839,7 +1046,6 @@
       searchInput.focus();
     }
 
-    // Page size change handler
     function handlePageSizeChange() {
       pageSize = parseInt(pageSizeSelect.value);
       currentPage = 1;
@@ -847,7 +1053,6 @@
       renderData(allProducts, searchTerm);
     }
 
-    // Page navigation
     function goToPage(delta) {
       const totalPages = Math.ceil(filteredProducts.length / pageSize) || 1;
       const newPage = currentPage + delta;
